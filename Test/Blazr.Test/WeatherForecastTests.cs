@@ -48,7 +48,7 @@ public class WeatherForecastTests
         var testItem = DboWeatherForecastMap.Map(testDboItem);
 
         var request = new ItemQueryRequest(new(testUid));
-        var loadResult = await broker.GetItemAsync<WeatherForecast>(request);
+        var loadResult = await broker.ExecuteQueryAsync<WeatherForecast>(request);
         Assert.True(loadResult.Successful);
 
         var dbItem = loadResult.Item;

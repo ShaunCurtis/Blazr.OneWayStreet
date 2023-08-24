@@ -11,6 +11,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+    <ProjectReference Include="..\..\..\..\Blazr.Core\Blazr.Core\Blazr.Core.csproj" />
     <ProjectReference Include="..\..\Libraries\Blazr.OneWayStreet\Blazr.OneWayStreet.csproj" />
   </ItemGroup>
 

@@ -1,4 +1,5 @@
 ﻿global using Blazr.OneWayStreet.Core;
+global using Blazr.Core;
 
 global using FluentValidation;
 global using Microsoft.AspNetCore.Authorization;

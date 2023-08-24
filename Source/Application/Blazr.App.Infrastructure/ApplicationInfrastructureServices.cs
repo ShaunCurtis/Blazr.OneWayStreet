@@ -8,21 +8,10 @@ namespace Blazr.App.Infrastructure;
 public static class ApplicationInfrastructureServices
 {
     public static void AddAppServerInfrastructureServices(this IServiceCollection services)
-        => services.AddAppServerDataServices<InMemoryTestDbContext>(options
+    {
+        services.AddDbContextFactory<InMemoryTestDbContext>(options
             => options.UseInMemoryDatabase($"TestDatabase-{Guid.NewGuid().ToString()}"));
 
-    public static void AddAppTestInfrastructureServices(this IServiceCollection services)
-        => services.AddAppServerDataServices<InMemoryTestDbContext>(options
-            => options.UseInMemoryDatabase($"TestDatabase-{Guid.NewGuid().ToString()}"));
-
-    public static void AddAppServerDataServices<TDbContext>(this IServiceCollection services, Action<DbContextOptionsBuilder> options) where TDbContext : DbContext
-    {
-        AddAppServerInfrastructureServices<TDbContext>(services, options);
-    }
-
-    private static void AddAppServerInfrastructureServices<TDbContext>(this IServiceCollection services, Action<DbContextOptionsBuilder> options) where TDbContext : DbContext
-    {
-        services.AddDbContextFactory<TDbContext>(options);
         services.AddScoped<IDataBroker, ServerDataBroker>();
 
         // Add the standard handlers
@@ -30,10 +19,7 @@ public static class ApplicationInfrastructureServices
         services.AddScoped<IItemRequestHandler, ItemRequestServerHandler<InMemoryTestDbContext>>();
         services.AddScoped<ICommandHandler, CommandServerHandler<InMemoryTestDbContext>>();
 
-
-        // Add custom handlers
-        services.AddScoped<ICommandHandler<WeatherForecast>, WeatherForecastCommandHandler<InMemoryTestDbContext>>();
-
+        // Add any individual entity services
         services.AddWeatherForecastServerInfrastructureServices();
     }
 
