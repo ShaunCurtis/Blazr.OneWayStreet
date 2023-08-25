@@ -5,17 +5,8 @@
 /// ============================================================
 namespace Blazr.OneWayStreet.Core;
 
-public record struct FilterDefinition
-{
-    public string FilterName { get; init; } = string.Empty;
-    public string FilterData { get; init; } = string.Empty;
-
-    public FilterDefinition( string filterName, string filterData) 
-    { 
-        FilterName = filterName;
-        FilterData = filterData;
-    }
-
+public record struct FilterDefinition(string FilterName,string FilterData)
+{ 
     public bool TryFromJson<T>([NotNullWhen(true)] out T? value)
     {
         JsonSerializerOptions options = new() { IncludeFields = true };
@@ -30,6 +21,6 @@ public record struct FilterDefinition
     {
         JsonSerializerOptions options = new() { IncludeFields = true };
         var json = JsonSerializer.Serialize<T>(obj, options);
-        return new(filterName: name, filterData: json );
+        return new(name, json);
     }
 }

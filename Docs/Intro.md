@@ -196,4 +196,3 @@ We can now write a test to get the first record through the pipeline.  The steps
         Assert.Equal(testItem, dbItem);
     }
 ```
-

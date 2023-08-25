@@ -23,7 +23,7 @@ public class WeatherForecastTests
     private ServiceProvider GetServiceProvider()
     {
         var services = new ServiceCollection();
-        services.AddAppTestInfrastructureServices();
+        services.AddAppServerInfrastructureServices();
         services.AddLogging(builder => builder.AddDebug());
 
         var provider = services.BuildServiceProvider();
@@ -37,28 +37,58 @@ public class WeatherForecastTests
     }
 
     [Fact]
-    public async void LoadAForecast()
+    public async void GetAForecast()
+    {
+        // Get a fully stocked DI container
+        var provider = GetServiceProvider();
+
+        //Get the data broker
+        var broker = provider.GetService<IDataBroker>()!;
+
+        // Get the test item from the Test Provider
+        var testDboItem = _testDataProvider.WeatherForecasts.First();
+        // Gets the Id to retrieve
+        var testUid = testDboItem.Uid;
+
+        // Get the Domain object - the Test data provider deals in dbo objects
+        var testItem = DboWeatherForecastMap.Map(testDboItem);
+
+        // Build an item request instance
+        var request = new ItemQueryRequest(new(testUid));
+        // Execute the query against the broker
+        var loadResult = await broker.ExecuteQueryAsync<WeatherForecast>(request);
+        // check the query was successful
+        Assert.True(loadResult.Successful);
+        
+        // get the returned record 
+        var dbItem = loadResult.Item;
+        // check it matches the test record
+        Assert.Equal(testItem, dbItem);
+    }
+
+    [Theory]
+    [InlineData(0, 10)]
+    [InlineData(0, 50)]
+    [InlineData(5, 10)]
+    public async void GetForecastList(int startIndex, int pageSize)
     {
         var provider = GetServiceProvider();
         var broker = provider.GetService<IDataBroker>()!;
 
-        var testDboItem = _testDataProvider.WeatherForecasts.First();
-        var testUid = testDboItem.Uid;
+        var testCount = _testDataProvider.WeatherForecasts.Count();
+        var testFirstItem = DboWeatherForecastMap.Map(_testDataProvider.WeatherForecasts.Skip(startIndex).First());
 
-        var testItem = DboWeatherForecastMap.Map(testDboItem);
-
-        var request = new ItemQueryRequest(new(testUid));
+        var request = new ListQueryRequest { PageSize = pageSize, StartIndex = startIndex };
         var loadResult = await broker.ExecuteQueryAsync<WeatherForecast>(request);
         Assert.True(loadResult.Successful);
 
-        var dbItem = loadResult.Item;
-
-        Assert.Equal(testItem, dbItem);
+        Assert.Equal(testCount, loadResult.TotalCount);
+        Assert.Equal(pageSize, loadResult.Items.Count());
+        Assert.Equal(testFirstItem, loadResult.Items.First());
     }
 
-
     [Fact]
-    public async void LoadAFilteredForecastList()
+    public async void GetAFilteredForecastList()
     {
         var provider = GetServiceProvider();
         var broker = provider.GetService<IDataBroker>()!;
@@ -74,7 +104,7 @@ public class WeatherForecastTests
         var filters = new List<FilterDefinition>() { filterDefinition };
         var request = new ListQueryRequest { PageSize = pageSize, StartIndex = 0, Filters = filters };
 
-        var loadResult = await broker.GetItemsAsync<WeatherForecast>(request);
+        var loadResult = await broker.ExecuteQueryAsync<WeatherForecast>(request);
         Assert.True(loadResult.Successful);
 
         Assert.Equal(testCount, loadResult.TotalCount);
@@ -82,219 +112,118 @@ public class WeatherForecastTests
         Assert.Equal(testFirstItem, loadResult.Items.First());
     }
 
-    [Theory]
-    [InlineData(0, 10)]
-    [InlineData(0, 50)]
-    [InlineData(5, 10)]
-    public async void LoadAForecastList(int startIndex, int pageSize)
+    [Fact]
+    public async void GetASortedForecastList()
     {
         var provider = GetServiceProvider();
         var broker = provider.GetService<IDataBroker>()!;
 
         var testCount = _testDataProvider.WeatherForecasts.Count();
-        var testFirstItem = DboWeatherForecastMap.Map(_testDataProvider.WeatherForecasts.Skip(startIndex).First());
+        var testFirstItem = DboWeatherForecastMap.Map(_testDataProvider.WeatherForecasts.Last());
 
-        var request = new ListQueryRequest { PageSize = pageSize, StartIndex = startIndex };
-        var loadResult = await broker.GetItemsAsync<WeatherForecast>(request);
+        SortDefinition sort = new("Date", true);
+        var sortList = new List<SortDefinition>() { sort }; 
+
+        var request = new ListQueryRequest { PageSize = 10, StartIndex = 0, Sorters = sortList };
+        var loadResult = await broker.ExecuteQueryAsync<WeatherForecast>(request);
         Assert.True(loadResult.Successful);
 
-        Assert.Equal(testCount, loadResult.TotalCount);
-        Assert.Equal(pageSize, loadResult.Items.Count());
         Assert.Equal(testFirstItem, loadResult.Items.First());
     }
 
-    //[Fact]
-    //public async void UpdateAnEntity()
-    //{
-    //    var provider = GetServiceProvider();
-    //    var broker = provider.GetService<IDataBroker>()!;
-    //    var factory = provider.GetService<DiodeContextFactory>()!;
-    //    var contextProvider = provider.GetService<DiodeContextProvider<Customer>>()!;
+    [Fact]
+    public async void UpdateAForecast()
+    {
+        // Get a fully stocked DI container
+        var provider = GetServiceProvider();
+        var broker = provider.GetService<IDataBroker>()!;
 
-    //    var cancelToken = new CancellationToken();
+        var testDboItem = _testDataProvider.WeatherForecasts.First();
+        var testUid = testDboItem.Uid;
 
-    //    var originalCount = _testDataProvider.Customers.Count();
-    //    var expectedCount = originalCount;
-    //    var testItem = _testDataProvider.TestCustomer;
-    //    var testUid = testItem.Uid;
+        var testItem = DboWeatherForecastMap.Map(testDboItem);
 
-    //    var request = new ItemQueryRequest(new(testUid));
-    //    var loadResult = await factory.GetEntityFromProviderAsync<Customer>(request);
-    //    Assert.True(loadResult.Successful);
+        var request = new ItemQueryRequest(new(testUid));
+        var loadResult = await broker.ExecuteQueryAsync<WeatherForecast>(request);
+        Assert.True(loadResult.Successful);
 
-    //    var context = loadResult.Item;
+        var dbItem = loadResult.Item!;
 
-    //    // set up event registration
+        var newItem = dbItem with { TemperatureC = dbItem.TemperatureC + 10 };
 
-    //    DiodeContextChangeEventArgs<Customer>? contextEventArgs = null;
-    //    int contextTimesEventCalled = 0;
+        var command = new CommandRequest<WeatherForecast>(newItem, CommandState.Update);
+        var commandResult = await broker.ExecuteCommandAsync<WeatherForecast>(command);
+        Assert.True(commandResult.Successful);
 
-    //    context.StateHasChanged += (sender, args) =>
-    //    {
-    //        contextTimesEventCalled++;
-    //        contextEventArgs = args;
-    //    };
+        request = new ItemQueryRequest(new(testUid));
+        loadResult = await broker.ExecuteQueryAsync<WeatherForecast>(request);
+        Assert.True(loadResult.Successful);
 
-    //    DiodeContextChangeEventArgs<Customer>? providerEventArgs = null;
-    //    int providerTimesEventCalled = 0;
+        var dbNewItem = loadResult.Item!;
 
-    //    contextProvider.StateHasChanged += (sender, args) =>
-    //    {
-    //        providerTimesEventCalled++;
-    //        providerEventArgs = args;
-    //    };
+        Assert.Equal(newItem, dbNewItem);
 
-    //    var dbItem = loadResult.Item!.ImmutableItem;
+        var testCount = _testDataProvider.WeatherForecasts.Count();
 
-    //    var editContext = new CustomerEditContext(dbItem!);
+        var queryRequest = new ListQueryRequest { PageSize = 10, StartIndex = 0 };
+        var queryResult = await broker.ExecuteQueryAsync<WeatherForecast>(queryRequest);
+        Assert.True(queryResult.Successful);
 
-    //    var newCustomerName = $"{editContext.CustomerName} - Edited";
+        Assert.Equal(testCount, queryResult.TotalCount);
+    }
 
-    //    editContext.CustomerName = newCustomerName;
+    [Fact]
+    public async void DeleteAForecast()
+    {
+        // Get a fully stocked DI container
+        var provider = GetServiceProvider();
+        var broker = provider.GetService<IDataBroker>()!;
 
-    //    var mutateResult = await contextProvider.DispatchAsync<CustomerEditContext>(editContext);
-    //    Assert.True(mutateResult.Successful);
+        var testDboItem = _testDataProvider.WeatherForecasts.First();
+        var testUid = testDboItem.Uid;
 
-    //    // need to yield to ensure the events have been raised before we test them
-    //    await Task.Yield();
-    //    Assert.Equal(1, contextTimesEventCalled);
-    //    Assert.Equal(1, providerTimesEventCalled);
+        var testItem = DboWeatherForecastMap.Map(testDboItem);
 
-    //    var persistResult = await factory.PersistEntityToProviderAsync<Customer>(testUid);
-    //    Assert.True(persistResult.Successful);
+        var command = new CommandRequest<WeatherForecast>(testItem, CommandState.Delete);
+        var commandResult = await broker.ExecuteCommandAsync<WeatherForecast>(command);
+        Assert.True(commandResult.Successful);
 
-    //    Assert.Equal(2, contextTimesEventCalled);
-    //    Assert.Equal(2, providerTimesEventCalled);
+        var testCount = _testDataProvider.WeatherForecasts.Count() - 1;
 
-    //    var listRequest = new ListQueryRequest() { StartIndex = 0, PageSize = 1000, Cancellation = cancelToken };
-    //    var listResult = await broker!.GetItemsAsync<Customer>(listRequest);
-    //    Assert.True(listResult.Successful);
-    //    Assert.Equal(expectedCount, listResult.TotalCount);
+        var queryRequest = new ListQueryRequest { PageSize = 10, StartIndex = 0 };
+        var queryResult = await broker.ExecuteQueryAsync<WeatherForecast>(queryRequest);
+        Assert.True(queryResult.Successful);
 
-    //    var itemRequest = new ItemQueryRequest(new(testUid), cancelToken);
-    //    var itemResult = await broker!.GetItemAsync<Customer>(itemRequest);
-    //    Assert.True(itemResult.Successful);
+        Assert.Equal(testCount, queryResult.TotalCount);
+    }
 
-    //    var expectedItem = _testDataProvider.TestCustomer with { CustomerName = newCustomerName };
-    //    Assert.Equal(expectedItem, mutateResult.Item);
-    //    Assert.Equal(expectedItem, itemResult.Item);
+    [Fact]
+    public async void AddAForecast()
+    {
+        // Get a fully stocked DI container
+        var provider = GetServiceProvider();
+        var broker = provider.GetService<IDataBroker>()!;
 
-    //    Assert.Equal(testUid, contextEventArgs!.Uid);
-    //    Assert.Equal(expectedItem, contextEventArgs!.MutatedItem.ImmutableItem);
-    //    Assert.Equal(testUid, providerEventArgs!.Uid);
-    //    Assert.Equal(expectedItem, providerEventArgs!.MutatedItem.ImmutableItem);
+        var newItem = new WeatherForecast { WeatherForecastUid = new(Guid.NewGuid()), Date = DateOnly.FromDateTime(DateTime.Now), Summary = "Testing", TemperatureC = 30 };
 
-    //}
+        var command = new CommandRequest<WeatherForecast>(newItem, CommandState.Add);
+        var commandResult = await broker.ExecuteCommandAsync<WeatherForecast>(command);
+        Assert.True(commandResult.Successful);
 
+        var request = new ItemQueryRequest(newItem.EntityUid);
+        var loadResult = await broker.ExecuteQueryAsync<WeatherForecast>(request);
+        Assert.True(loadResult.Successful);
 
-    //[Fact]
-    //public async void DeleteAnEntity()
-    //{
-    //    var provider = GetServiceProvider();
-    //    var broker = provider.GetService<IDataBroker>()!;
-    //    var factory = provider.GetService<DiodeContextFactory>()!;
-    //    var contextProvider = provider.GetService<DiodeContextProvider<Customer>>()!;
+        var dbNewItem = loadResult.Item!;
 
-    //    var cancelToken = new CancellationToken();
+        Assert.Equal(newItem, dbNewItem);
 
-    //    var originalCount = _testDataProvider.Customers.Count();
-    //    var expectedCount = originalCount - 1;
-    //    var testItem = _testDataProvider.TestCustomer;
-    //    var testUid = testItem.Uid;
+        var testCount = _testDataProvider.WeatherForecasts.Count() + 1;
 
-    //    var request = new ItemQueryRequest(new(testUid));
-    //    var loadResult = await factory.GetEntityFromProviderAsync<Customer>(request);
-    //    Assert.True(loadResult.Successful);
+        var queryRequest = new ListQueryRequest { PageSize = 10, StartIndex = 0 };
+        var queryResult = await broker.ExecuteQueryAsync<WeatherForecast>(queryRequest);
+        Assert.True(queryResult.Successful);
 
-    //    var context = loadResult.Item;
-
-    //    // set up event registration
-
-    //    DiodeContextChangeEventArgs<Customer>? contextEventArgs = null;
-    //    int contextTimesEventCalled = 0;
-
-    //    context.StateHasChanged += (sender, args) =>
-    //    {
-    //        contextTimesEventCalled++;
-    //        contextEventArgs = args;
-    //    };
-
-    //    DiodeContextChangeEventArgs<Customer>? providerEventArgs = null;
-    //    int providerTimesEventCalled = 0;
-
-    //    contextProvider.StateHasChanged += (sender, args) =>
-    //    {
-    //        providerTimesEventCalled++;
-    //        providerEventArgs = args;
-    //    };
-
-    //    var deleteresult = contextProvider.MarkContextForDeletion(testUid);
-    //    Assert.True(deleteresult.Successful);
-
-    //    // need to yield to ensure the events have been raised before we test them
-    //    await Task.Yield();
-    //    Assert.Equal(1, contextTimesEventCalled);
-    //    Assert.Equal(1, providerTimesEventCalled);
-
-    //    var persistResult = await factory.PersistEntityToProviderAsync<Customer>(testUid);
-
-    //    Assert.True(persistResult.Successful);
-
-    //    var listRequest = new ListQueryRequest() { StartIndex = 0, PageSize = 1000, Cancellation = cancelToken };
-    //    var listResult = await broker!.GetItemsAsync<Customer>(listRequest);
-
-    //    Assert.True(listResult.Successful);
-    //    Assert.Equal(expectedCount, listResult.TotalCount);
-
-    //    var itemRequest = new ItemQueryRequest(new(testUid), cancelToken);
-    //    var itemResult = await broker!.GetItemAsync<Customer>(itemRequest);
-
-    //    Assert.False(itemResult.Successful);
-    //}
-
-    //[Fact]
-    //public async void AddANewEntity()
-    //{
-    //    var provider = GetServiceProvider();
-    //    var broker = provider.GetService<IDataBroker>()!;
-    //    var factory = provider.GetService<DiodeContextFactory>()!;
-    //    var contextProvider = provider.GetService<DiodeContextProvider<Customer>>()!;
-
-    //    var cancelToken = new CancellationToken();
-
-    //    var originalCount = _testDataProvider.Customers.Count();
-    //    var expectedCount = originalCount + 1;
-
-    //    var addResult = factory.CreateNewEntity<Customer>();
-
-    //    Assert.True(addResult.Successful);
-
-    //    var testUid = addResult.Item!.Uid;
-
-    //    var editContext = new CustomerEditContext(addResult.Item.ImmutableItem);
-
-    //    var newCustomerName = $"Dan Air";
-
-    //    editContext.CustomerName = newCustomerName;
-
-    //    var mutatedResult = await contextProvider.DispatchAsync<CustomerEditContext>(editContext);
-
-    //    Assert.True(mutatedResult.Successful);
-
-    //    var persistResult = await factory.PersistEntityToProviderAsync<Customer>(testUid);
-
-    //    Assert.True(persistResult.Successful);
-
-    //    var listRequest = new ListQueryRequest() { StartIndex = 0, PageSize = 1000, Cancellation = cancelToken };
-    //    var listResult = await broker!.GetItemsAsync<Customer>(listRequest);
-
-    //    Assert.True(listResult.Successful);
-    //    Assert.Equal(expectedCount, listResult.TotalCount);
-
-    //    var itemRequest = new ItemQueryRequest(new(testUid), cancelToken);
-    //    var itemResult = await broker!.GetItemAsync<Customer>(itemRequest);
-
-    //    Assert.True(itemResult.Successful);
-    //    Assert.Equal(mutatedResult.Item, itemResult.Item);
-    //}
+        Assert.Equal(testCount, queryResult.TotalCount);
+    }
 }

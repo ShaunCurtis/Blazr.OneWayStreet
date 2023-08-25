@@ -6,10 +6,10 @@
 
 namespace Blazr.OneWayStreet.Core;
 
-public interface IRecordFilter<TRecord>
+public abstract class RecordFilterHandler<TRecord>
     where TRecord : class
 {
-    public IQueryable<TRecord> AddFilterToQuery(IEnumerable<FilterDefinition> filters, IQueryable<TRecord> query)
+    public IQueryable<TRecord> AddFiltersToQuery(IEnumerable<FilterDefinition> filters, IQueryable<TRecord> query)
     {
         foreach (var filter in filters)
         {
@@ -24,7 +24,5 @@ public interface IRecordFilter<TRecord>
         return query.AsQueryable();
     }
 
-    protected IPredicateSpecification<TRecord>? GetSpecification(FilterDefinition filter)
-        => null;
-
+    public abstract IPredicateSpecification<TRecord>? GetSpecification(FilterDefinition filter);
 }

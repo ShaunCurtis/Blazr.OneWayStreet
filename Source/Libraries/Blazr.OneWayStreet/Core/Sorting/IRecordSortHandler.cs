@@ -6,8 +6,8 @@
 
 namespace Blazr.OneWayStreet.Core;
 
-public interface IRecordSorter<TRecord>
+public interface IRecordSortHandler<TRecord>
     where TRecord : class
 {
-    public IQueryable<TRecord> AddSortToQuery(IQueryable<TRecord> query, IEnumerable<SortDefinition> definitions);
+    public IQueryable<TRecord> AddSortsToQuery(IQueryable<TRecord> query, IEnumerable<SortDefinition> definitions);
 }

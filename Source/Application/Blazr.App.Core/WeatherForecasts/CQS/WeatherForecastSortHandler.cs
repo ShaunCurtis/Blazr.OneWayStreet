@@ -6,8 +6,11 @@
 
 namespace Blazr.App.Core;
 
-public class CustomerSorter : RecordSorter<WeatherForecast>, IRecordSorter<WeatherForecast>
+public class WeatherForecastSortHandler : RecordSortHandler<WeatherForecast>, IRecordSortHandler<WeatherForecast>
 {
-    protected override Expression<Func<WeatherForecast, object>> DefaultSorter { get; } = (item) => item.Date;
-    protected override bool DefaultSortDescending { get; } = true;
+    public WeatherForecastSortHandler()
+    {
+        DefaultSorter = (item) => item.Date;
+        DefaultSortDescending = false;
+    }
 }

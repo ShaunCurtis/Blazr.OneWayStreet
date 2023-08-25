@@ -14,11 +14,11 @@ public class WeatherForecastsBySummarySpecification : PredicateSpecification<Wea
     {
         _summary = summary;
     }
+
     public WeatherForecastsBySummarySpecification(FilterDefinition filter)
     {
         _summary = filter.FilterData.ToString();
     }
-
 
     public override Expression<Func<WeatherForecast, bool>> Expression
         => item => _summary.Equals(item.Summary, StringComparison.CurrentCultureIgnoreCase);

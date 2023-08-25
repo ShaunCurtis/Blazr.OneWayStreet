@@ -7,9 +7,9 @@ using System.Reflection;
 
 namespace Blazr.OneWayStreet.Core;
 
-public static class RecordSorterFactory
+internal static class RecordSorterHelper
 {
-    public static bool TryBuildSortExpression<TRecord>(string sortField, [NotNullWhen(true)] out Expression<Func<TRecord, object>>? expression)
+    internal static bool TryBuildSortExpression<TRecord>(string sortField, [NotNullWhen(true)] out Expression<Func<TRecord, object>>? expression)
         where TRecord: class
     {
         expression = null;
@@ -27,5 +27,24 @@ public static class RecordSorterFactory
 
         return true;
     }
+
+    internal static IQueryable<TRecord> AddSort<TRecord>(IQueryable<TRecord> query, SortDefinition definition)
+        where TRecord : class
+    {
+        Expression<Func<TRecord, object>>? expression = null;
+
+        if (RecordSorterHelper.TryBuildSortExpression(definition.SortField, out expression))
+        {
+            if (expression is not null)
+            {
+                query = definition.SortDescending
+                    ? query.OrderByDescending(expression)
+                    : query.OrderBy(expression);
+            }
+        }
+
+        return query;
+    }
+
 }
 

@@ -37,32 +37,46 @@ public sealed class ListRequestServerHandler<TDbContext>
     private async ValueTask<ListQueryResult<TRecord>> GetItemsAsync<TRecord>(ListQueryRequest request)
     where TRecord : class
     {
-        int count = 0;
-        if (request == null)
-            throw new DataPipelineException($"No ListQueryRequest defined in {this.GetType().FullName}");
+        int totalRecordCount = 0;
 
-        var sorterProvider = _serviceProvider.GetService<IRecordSorter<TRecord>>();
-        var filterProvider = _serviceProvider.GetService<IRecordFilter<TRecord>>();
+        IRecordSortHandler<TRecord>? sorterHandler = null;
+        IRecordFilterHanlder<TRecord>? filterHandler = null;
 
-        if(request.Filters.Count() > 0 && filterProvider is null )
-            throw new DataPipelineException($"Filters are defined in {this.GetType().FullName} for {(typeof(TRecord).FullName)} but no FilterProvider service is registered");
-
-        if (request.Sorters.Count() > 0 && sorterProvider is null)
-            throw new DataPipelineException($"Sorters are defined in {this.GetType().FullName} for {(typeof(TRecord).FullName)} but no SorterProvider service is registered");
-
+        // Get a Unit of Work DbContext for the scope of the method
         using var dbContext = _factory.CreateDbContext();
+        // Turn off tracking.  We're only querying, no changes
         dbContext.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
 
+        // Get the IQueryable DbSet for TRecord
         IQueryable<TRecord> query = dbContext.Set<TRecord>();
-        if (filterProvider is not null)
-            query = filterProvider.AddFilterToQuery(request.Filters, query);
 
-        count = query is IAsyncEnumerable<TRecord>
+        // If we have filters defined we need to get the Filter Handler for TRecord
+        // and apply the predicate delegates to the IQueryable instance
+        if (request.Filters.Count() > 0)
+        {
+            // Get the Record Filter
+            filterHandler = _serviceProvider.GetService<IRecordFilterHanlder<TRecord>>();
+
+            // Throw an exception as we have filters defined, but no handler 
+            if (filterHandler is null)
+                throw new DataPipelineException($"Filters are defined in {this.GetType().FullName} for {(typeof(TRecord).FullName)} but no FilterProvider service is registered");
+
+            query = filterHandler.AddFiltersToQuery(request.Filters, query);
+        }
+
+        totalRecordCount = query is IAsyncEnumerable<TRecord>
             ? await query.CountAsync(request.Cancellation)
             : query.Count();
 
-        if (sorterProvider is not null)
-            query = sorterProvider.AddSortToQuery(query, request.Sorters);
+        if (request.Sorters.Count() > 0)
+        {
+            sorterHandler = _serviceProvider.GetService<IRecordSortHandler<TRecord>>();
+
+            if (sorterHandler is null)
+                throw new DataPipelineException($"Sorters are defined in {this.GetType().FullName} for {(typeof(TRecord).FullName)} but no SorterProvider service is registered");
+
+            query = sorterHandler.AddSortsToQuery(query, request.Sorters);
+        }
 
         if (request.PageSize > 0)
             query = query
@@ -73,6 +87,6 @@ public sealed class ListRequestServerHandler<TDbContext>
             ? await query.ToListAsync()
             : query.ToList();
 
-        return ListQueryResult<TRecord>.Success(list, count);
+        return ListQueryResult<TRecord>.Success(list, totalRecordCount);
     }
 }
