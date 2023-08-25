@@ -6,6 +6,11 @@
 
 namespace Blazr.OneWayStreet.Core;
 
+/// <summary>
+/// The purpose of the `ICommandEntity` interface is to identify Entity objects 
+/// that the data pipeline can update.
+/// No `ICommandEntity`, you get an expection if you try and run an update against the data store
+/// </summary>
 public interface ICommandEntity 
 { 
 }

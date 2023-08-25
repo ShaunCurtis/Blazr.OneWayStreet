@@ -6,7 +6,7 @@
 
 namespace Blazr.App.Core;
 
-public class WeatherForecastFilterHandler : RecordFilterHandler<WeatherForecast>, IRecordFilterHanlder<WeatherForecast>
+public class WeatherForecastFilterHandler : RecordFilterHandler<WeatherForecast>, IRecordFilterHandler<WeatherForecast>
 {
     public override IPredicateSpecification<WeatherForecast>? GetSpecification(FilterDefinition filter)
         => filter.FilterName switch

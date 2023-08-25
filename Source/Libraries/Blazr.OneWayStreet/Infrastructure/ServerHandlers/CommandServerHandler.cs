@@ -5,6 +5,11 @@
 /// ============================================================
 namespace Blazr.OneWayStreet.Infrastructure;
 
+/// <summary>
+/// This class implements the "standard" Server Command Handler
+/// against an EF `TDbContext`
+/// </summary>
+/// <typeparam name="TDbContext"></typeparam>
 public sealed class CommandServerHandler<TDbContext>
     : ICommandHandler
     where TDbContext : DbContext

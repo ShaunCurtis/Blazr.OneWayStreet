@@ -6,7 +6,7 @@
 
 namespace Blazr.OneWayStreet.Core;
 
-public interface IRecordFilterHanlder<TRecord>
+public interface IRecordFilterHandler<TRecord>
     where TRecord : class
 {
     public IQueryable<TRecord> AddFiltersToQuery(IEnumerable<FilterDefinition> filters, IQueryable<TRecord> query);

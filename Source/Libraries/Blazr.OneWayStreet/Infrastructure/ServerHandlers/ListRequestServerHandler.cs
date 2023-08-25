@@ -40,7 +40,7 @@ public sealed class ListRequestServerHandler<TDbContext>
         int totalRecordCount = 0;
 
         IRecordSortHandler<TRecord>? sorterHandler = null;
-        IRecordFilterHanlder<TRecord>? filterHandler = null;
+        IRecordFilterHandler<TRecord>? filterHandler = null;
 
         // Get a Unit of Work DbContext for the scope of the method
         using var dbContext = _factory.CreateDbContext();
@@ -55,19 +55,23 @@ public sealed class ListRequestServerHandler<TDbContext>
         if (request.Filters.Count() > 0)
         {
             // Get the Record Filter
-            filterHandler = _serviceProvider.GetService<IRecordFilterHanlder<TRecord>>();
+            filterHandler = _serviceProvider.GetService<IRecordFilterHandler<TRecord>>();
 
             // Throw an exception as we have filters defined, but no handler 
             if (filterHandler is null)
                 throw new DataPipelineException($"Filters are defined in {this.GetType().FullName} for {(typeof(TRecord).FullName)} but no FilterProvider service is registered");
 
+            // Apply the filters
             query = filterHandler.AddFiltersToQuery(request.Filters, query);
         }
 
+        // Get the total record count after applying the filters
         totalRecordCount = query is IAsyncEnumerable<TRecord>
             ? await query.CountAsync(request.Cancellation)
             : query.Count();
 
+        // If we have sorters we need to gets the Sort Handler for TRecord
+        // and apply the sorters to thw IQueryable instance
         if (request.Sorters.Count() > 0)
         {
             sorterHandler = _serviceProvider.GetService<IRecordSortHandler<TRecord>>();
@@ -78,11 +82,13 @@ public sealed class ListRequestServerHandler<TDbContext>
             query = sorterHandler.AddSortsToQuery(query, request.Sorters);
         }
 
+        // Apply paging to the filtered and sorted IQueryable
         if (request.PageSize > 0)
             query = query
                 .Skip(request.StartIndex)
                 .Take(request.PageSize);
 
+        // Finally materialize the list from the data source
         var list = query is IAsyncEnumerable<TRecord>
             ? await query.ToListAsync()
             : query.ToList();

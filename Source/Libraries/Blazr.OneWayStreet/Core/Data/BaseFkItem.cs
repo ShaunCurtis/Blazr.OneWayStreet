@@ -8,6 +8,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Blazr.OneWayStreet.Core;
 
+/// <summary>
+/// The base IFkItem foreign key implementation 
+/// </summary>
 public record BaseFkItem 
     : IFkItem
 {

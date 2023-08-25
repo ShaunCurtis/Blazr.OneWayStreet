@@ -1,5 +1,7 @@
 # Lists
 
+> Work in Progress
+
 Working with Lists presents some significant challenges in any data pipeline.
 
 Consider the classic *Repository Pattern* or *API* `GetAll`.  Seems Ok, but:
