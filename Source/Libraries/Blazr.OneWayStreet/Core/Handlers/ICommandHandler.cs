@@ -17,3 +17,10 @@ public interface ICommandHandler<TRecord>
 {
     public ValueTask<CommandResult> ExecuteAsync(CommandRequest<TRecord> request);
 }
+
+public interface ICommandHandler<TRecord, TDbo>
+        where TRecord : class
+        where TDbo : class
+{
+    public ValueTask<CommandResult> ExecuteAsync(CommandRequest<TRecord> request);
+}
