@@ -28,8 +28,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{13C3801F
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Blazr.Test", "Test\Blazr.Test\Blazr.Test.csproj", "{682752B5-17BA-4FD8-AF75-49A1BCB43D5C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Blazr.Core", "..\Blazr.Core\Blazr.Core\Blazr.Core.csproj", "{55B76243-E98D-4402-885F-64E2B29BE2F7}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -52,10 +50,6 @@ Global
 		{682752B5-17BA-4FD8-AF75-49A1BCB43D5C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{682752B5-17BA-4FD8-AF75-49A1BCB43D5C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{682752B5-17BA-4FD8-AF75-49A1BCB43D5C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{55B76243-E98D-4402-885F-64E2B29BE2F7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{55B76243-E98D-4402-885F-64E2B29BE2F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{55B76243-E98D-4402-885F-64E2B29BE2F7}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{55B76243-E98D-4402-885F-64E2B29BE2F7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -68,7 +62,6 @@ Global
 		{D90A2A9A-99D0-4A7A-A900-3985FCFCF059} = {05D8360C-8EEA-45D3-8BC0-8A677F7D9C9F}
 		{DE4573B1-EC2C-4ED3-9153-E717F182B212} = {05D8360C-8EEA-45D3-8BC0-8A677F7D9C9F}
 		{682752B5-17BA-4FD8-AF75-49A1BCB43D5C} = {13C3801F-296B-4739-8674-AC93765FFB89}
-		{55B76243-E98D-4402-885F-64E2B29BE2F7} = {80DC2536-BE3D-414A-8B73-D72BE3086C1E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {BCFBDD43-7B05-4F6E-85F2-C3AEB20071C9}

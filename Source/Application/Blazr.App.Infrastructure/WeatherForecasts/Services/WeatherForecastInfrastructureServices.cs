@@ -11,7 +11,7 @@ public static class WeatherForecastInfrastructureServices
     {
         services.AddScoped<IDboEntityMap<DboWeatherForecast, WeatherForecast>, DboWeatherForecastMap>();
         services.AddScoped<ICommandHandler<WeatherForecast>, WeatherForecastCommandHandler<InMemoryTestDbContext>>();
-        services.AddTransient<IRecordFilterHanlder<WeatherForecast>, WeatherForecastFilterHandler>();
+        services.AddTransient<IRecordFilterHandler<WeatherForecast>, WeatherForecastFilterHandler>();
         services.AddTransient<IRecordSortHandler<WeatherForecast>, WeatherForecastSortHandler>();
     }
 }

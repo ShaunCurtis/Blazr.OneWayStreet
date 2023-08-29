@@ -4,9 +4,21 @@
     <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Authors>Shaun Curtis</Authors>
+    <Company>Cold Elm Coders</Company>
+    <Description>A Read Only Data Pipeline</Description>
+    <Copyright>Use and Donate</Copyright>
+    <PackageReadmeFile>Package.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/ShaunCurtis/Blazr.OneWayStreet</RepositoryUrl>
+    <PackageReleaseNotes>Pre Release Version</PackageReleaseNotes>
+    <AssemblyVersion>0.1.0.0</AssemblyVersion>
+    <FileVersion>0.1.0.0.</FileVersion>
+    <PackageLicenseFile>license.txt</PackageLicenseFile>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Blazr.Core" Version="1.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.10" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0" />
   </ItemGroup>
@@ -16,7 +28,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\Blazr.Core\Blazr.Core\Blazr.Core.csproj" />
+    <None Update="license.txt">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Update="Package.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>
