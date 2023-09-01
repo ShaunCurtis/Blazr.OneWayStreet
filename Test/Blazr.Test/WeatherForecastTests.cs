@@ -6,6 +6,7 @@
 
 using Blazr.App.Core;
 using Blazr.App.Infrastructure;
+using Blazr.Core.OWS;
 using Blazr.OneWayStreet.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -124,11 +125,20 @@ public class WeatherForecastTests
         SortDefinition sort = new("Date", true);
         var sortList = new List<SortDefinition>() { sort }; 
 
-        var request = new ListQueryRequest { PageSize = 10, StartIndex = 0, Sorters = sortList };
+        var request = new ListQueryRequest { PageSize = 10000, StartIndex = 0, Sorters = sortList };
         var loadResult = await broker.ExecuteQueryAsync<WeatherForecast>(request);
         Assert.True(loadResult.Successful);
 
         Assert.Equal(testFirstItem, loadResult.Items.First());
+
+        sort = new("Date", false);
+        sortList = new List<SortDefinition>() { sort };
+
+        request = new ListQueryRequest { PageSize = 100000, StartIndex = 0, Sorters = sortList };
+        loadResult = await broker.ExecuteQueryAsync<WeatherForecast>(request);
+        Assert.True(loadResult.Successful);
+
+        Assert.Equal(testFirstItem, loadResult.Items.Last());
     }
 
     [Fact]

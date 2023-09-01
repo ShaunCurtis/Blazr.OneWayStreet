@@ -1,5 +1,6 @@
 ﻿global using Blazr.OneWayStreet.Core;
 global using Blazr.Core;
+global using Blazr.Core.OWS;
 
 global using System.Diagnostics.CodeAnalysis;
 global using System.Text.Json;
