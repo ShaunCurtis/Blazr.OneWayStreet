@@ -1,13 +1,13 @@
 # One Way Street
 
-One Way Street is a read only data pipeline loosely based on CQS [Command/Query Separation].  
+One Way Street is a read only data pipeline loosely based on CQS [Command/Query Separation] pattern.  
 
 It's available as a Nuget Package - [Blazr.OneWayStreet](https://www.nuget.org/packages/Blazr.OneWayStreet).
 
 It separates out:
 
-- *Queries* - Requests for data from the primary data store
-- *Commands* - Requests to mutation data within the primary data store.
+- *Queries* - Requests for data
+- *Commands* - Requests to mutation data.
 
 The pattern can be defined [and summarised] in an `IDataBroker` interface.
 
