@@ -40,6 +40,8 @@ public enum CommandState
 }
 ```
 
+The library provides a server based implementation of the pattern over Entity Farmework Core.  
+
 ### GetAForecast Test
 
 `GetAForecast` demonstrates thw basic data pipeline coding pattern.
