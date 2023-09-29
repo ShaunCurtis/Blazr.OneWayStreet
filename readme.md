@@ -44,7 +44,7 @@ The library provides a server based implementation of the pattern over Entity Fa
 
 ### GetAForecast Test
 
-`GetAForecast` demonstrates thw basic data pipeline coding pattern.
+`GetAForecast` demonstrates the basic data pipeline coding pattern.
 
 ```csharp
     [Fact]
@@ -80,7 +80,7 @@ The library provides a server based implementation of the pattern over Entity Fa
 
 ### GetForecastList
 
-`GetForecastList` demonstrates how to get a paged list from the data provider.
+`GetForecastList` demonstrates getting a paged list from the data provider.
 
 ```csharp
 
@@ -108,7 +108,7 @@ The library provides a server based implementation of the pattern over Entity Fa
 
 ### Filter
 
-`GetAFilteredForecastList` demonstrates how to add filtering to a request.
+`GetAFilteredForecastList` demonstrates filtering a paged list from the data provider.
 
 ```csharp
     [Fact]
@@ -139,7 +139,7 @@ The library provides a server based implementation of the pattern over Entity Fa
 
 ### UpdateAForecast Test
 
-The `UpdateAForecast` test method demonstrates the basic usage of the command pipeline.
+The `UpdateAForecast` test method demonstrates the command pipeline: in this case an Update.
 
 ```csharp
     [Fact]
