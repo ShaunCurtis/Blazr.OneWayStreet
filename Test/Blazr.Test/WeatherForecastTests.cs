@@ -159,7 +159,14 @@ public class WeatherForecastTests
 
         var dbItem = loadResult.Item!;
 
-        var newItem = dbItem with { TemperatureC = dbItem.TemperatureC + 10 };
+        var recordEditContext = new WeatherForecastEditContext(dbItem);
+
+        recordEditContext.TemperatureC = recordEditContext.TemperatureC + 10;
+
+        // In a real edit setting, you would be doing validation to ensure the
+        // recordEditContext values are valid before attempting to save the record
+        // Note that the validation is on the WeatherForecastEditContext, not WeatherForecast!
+        var newItem = recordEditContext.AsRecord;
 
         var command = new CommandRequest<WeatherForecast>(newItem, CommandState.Update);
         var commandResult = await broker.ExecuteCommandAsync<WeatherForecast>(command);
