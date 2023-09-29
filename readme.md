@@ -22,9 +22,9 @@ public interface IDataBroker
 }
 ```
 
-Each method accepts a *Request* object tht provides the data required and returns a *Result* object.
+Each method accepts a *Request* object that provides the data required and returns a *Result* object.
 
-`ExecuteQueryAsync` has two forms.  One for getting a `TRecord` item, and one for getting a collection of `TRecord`.
+`ExecuteQueryAsync` has two forms.  One for a single `TRecord` item, and one for a collection of `TRecord`'s.
 
 `ExecuteCommandAsync` has a single form.  The type of command is defined in the `CommandRequest`.  
 
@@ -42,7 +42,7 @@ public enum CommandState
 
 ### GetAForecast Test
 
-`GetAForecast` demonstrates thw basic daa pipeline coding pattern.
+`GetAForecast` demonstrates thw basic data pipeline coding pattern.
 
 ```csharp
     [Fact]
@@ -106,7 +106,8 @@ public enum CommandState
 
 ### Filter
 
-`GetAFilteredForecastList` demostrates how to add filtering to a request.
+`GetAFilteredForecastList` demonstrates how to add filtering to a request.
+
 ```csharp
     [Fact]
     public async void GetAFilteredForecastList()
