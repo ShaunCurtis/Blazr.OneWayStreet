@@ -6,7 +6,7 @@
 
 namespace Blazr.App.Core;
 
-public class WeatherForecastEditContext 
+public class WeatherForecastEditContext
 {
     public string Name => "WeatherForecast Edit Context";
 
@@ -27,4 +27,12 @@ public class WeatherForecastEditContext
         this.TemperatureC = record.TemperatureC;
         this.Date = record.Date;
     }
+
+    public WeatherForecast AsRecord => new()
+    {
+        WeatherForecastUid = WeatherForecastUid,
+        Summary = Summary ?? "Not Set",
+        Date = this.Date ?? DateOnly.FromDateTime(DateTime.Now),
+        TemperatureC = this.TemperatureC ?? 0
+    };
 }
