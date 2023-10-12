@@ -14,17 +14,17 @@ using Microsoft.Extensions.Logging;
 
 namespace Blazr.Test;
 
-public class WeatherForecastTests
+public class MappedWeatherForecastTests
 {
     private TestDataProvider _testDataProvider;
 
-    public WeatherForecastTests()
+    public MappedWeatherForecastTests()
         => _testDataProvider = TestDataProvider.Instance();
 
     private ServiceProvider GetServiceProvider()
     {
         var services = new ServiceCollection();
-        services.AddAppServerInfrastructureServices();
+        services.AddAppServerMappedInfrastructureServices();
         services.AddLogging(builder => builder.AddDebug());
 
         var provider = services.BuildServiceProvider();
@@ -56,8 +56,10 @@ public class WeatherForecastTests
 
         // Build an item request instance
         var request = ItemQueryRequest.Create(new(testUid), testUid);
+
         // Execute the query against the broker
         var loadResult = await broker.ExecuteQueryAsync<WeatherForecast>(request);
+        
         // check the query was successful
         Assert.True(loadResult.Successful);
         
@@ -214,13 +216,14 @@ public class WeatherForecastTests
         var provider = GetServiceProvider();
         var broker = provider.GetService<IDataBroker>()!;
 
-        var newItem = new WeatherForecast { WeatherForecastUid = new(Guid.NewGuid()), Date = DateOnly.FromDateTime(DateTime.Now), Summary = "Testing", TemperatureC = 30 };
+        var newItemGuid = Guid.NewGuid();
+        var newItem = new WeatherForecast { WeatherForecastUid = new(newItemGuid), Date = DateOnly.FromDateTime(DateTime.Now), Summary = "Testing", TemperatureC = 30 };
 
         var command = new CommandRequest<WeatherForecast>(newItem, CommandState.Add);
         var commandResult = await broker.ExecuteCommandAsync<WeatherForecast>(command);
         Assert.True(commandResult.Successful);
 
-        var request = ItemQueryRequest.Create(newItem.EntityUid, newItem.EntityUid.Value);
+        var request = ItemQueryRequest.Create( newItem.EntityUid, newItem.EntityUid.Value);
         var loadResult = await broker.ExecuteQueryAsync<WeatherForecast>(request);
         Assert.True(loadResult.Successful);
 

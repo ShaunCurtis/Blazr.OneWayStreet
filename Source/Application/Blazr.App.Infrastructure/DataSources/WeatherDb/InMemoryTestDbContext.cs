@@ -10,7 +10,7 @@ public sealed class InMemoryTestDbContext
 {
     public DbSet<WeatherForecast> weatherForecasts { get; set; } = default!;
 
-    internal DbSet<DboWeatherForecast> dboWeatherForecasts { get; set; } = default!;
+    public DbSet<DboWeatherForecast> dboWeatherForecasts { get; set; } = default!;
 
     public InMemoryTestDbContext(DbContextOptions<InMemoryTestDbContext> options) : base(options) { }
 

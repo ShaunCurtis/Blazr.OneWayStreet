@@ -7,7 +7,7 @@
   </PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Blazr.Core" Version="1.0.0.1" />
+		<PackageReference Include="Blazr.Core" Version="1.0.2" />
 		<PackageReference Include="FluentValidation.AspNetCore" Version="11.3.0" />
 	</ItemGroup>
 

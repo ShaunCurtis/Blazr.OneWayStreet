@@ -12,15 +12,15 @@
     <PackageReadmeFile>Package.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/ShaunCurtis/Blazr.OneWayStreet</RepositoryUrl>
     <PackageReleaseNotes>Pre Release Version</PackageReleaseNotes>
-    <AssemblyVersion>1.0.0.1</AssemblyVersion>
-    <FileVersion>1.0.0.1</FileVersion>
+    <AssemblyVersion>1.1.2</AssemblyVersion>
+    <FileVersion>1.1.2</FileVersion>
     <PackageLicenseFile>license.txt</PackageLicenseFile>
-    <Version>1.0.1</Version>
+    <Version>1.1.2</Version>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Blazr.Core" Version="1.0.0.1" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.10" />
+    <PackageReference Include="Blazr.Core" Version="1.0.2" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.12" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0" />
   </ItemGroup>
 

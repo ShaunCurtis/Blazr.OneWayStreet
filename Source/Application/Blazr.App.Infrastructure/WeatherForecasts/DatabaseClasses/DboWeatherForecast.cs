@@ -5,7 +5,7 @@
 /// ============================================================
 namespace Blazr.App.Infrastructure;
 
-public sealed record DboWeatherForecast : ICommandEntity
+public sealed record DboWeatherForecast : ICommandEntity, IKeyedEntity
 {
     [Key] public Guid Uid { get; init; } = Guid.Empty;
 
@@ -14,4 +14,6 @@ public sealed record DboWeatherForecast : ICommandEntity
     public int TemperatureC { get; init; }
 
     public string? Summary { get; init; }
+
+    public object KeyValue => Uid;
 }
