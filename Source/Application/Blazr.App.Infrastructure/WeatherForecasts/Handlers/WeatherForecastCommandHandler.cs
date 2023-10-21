@@ -7,21 +7,21 @@
 namespace Blazr.App.Infrastructure;
 
 public sealed class WeatherForecastCommandHandler<TDbContext>
-    : ICommandHandler<WeatherForecast>
+    : ICommandHandler<DcoWeatherForecast>
     where TDbContext : DbContext
 {
     private ILogger<WeatherForecastCommandHandler<TDbContext>> _logger;
     private readonly ICommandHandler _commandHandler;
-    private readonly IDboEntityMap<DboWeatherForecast, WeatherForecast> _mapper;
+    private readonly IDboEntityMap<DboWeatherForecast, DcoWeatherForecast> _mapper;
 
-    public WeatherForecastCommandHandler(ILogger<WeatherForecastCommandHandler<TDbContext>> logger, ICommandHandler commandHandler, IDboEntityMap<DboWeatherForecast, WeatherForecast> mapper)
+    public WeatherForecastCommandHandler(ILogger<WeatherForecastCommandHandler<TDbContext>> logger, ICommandHandler commandHandler, IDboEntityMap<DboWeatherForecast, DcoWeatherForecast> mapper)
     {
         _logger = logger;
         _commandHandler = commandHandler;
         _mapper = mapper;
     }
 
-    public ValueTask<CommandResult> ExecuteAsync(CommandRequest<WeatherForecast> request)
+    public ValueTask<CommandResult> ExecuteAsync(CommandRequest<DcoWeatherForecast> request)
     {
         var dbo = _mapper.MapTo(request.Item);
         if (dbo is null)

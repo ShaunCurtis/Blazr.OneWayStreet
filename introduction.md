@@ -1,6 +1,6 @@
 # One Way Street
 
-One Way Street is a read only data pipeline loosely based on CQS [Command/Query Separation] pattern.  
+One Way Street is a read only data pipeline loosely based on CQS [Command/Query Separation] pattern.  This article provides an introduction and demonstrates it's usage using XUnit tests.
 
 It's available as a Nuget Package - [Blazr.OneWayStreet](https://www.nuget.org/packages/Blazr.OneWayStreet).
 
@@ -16,9 +16,9 @@ public interface IDataBroker
 {
     public ValueTask<ListQueryResult<TRecord>> ExecuteQueryAsync<TRecord>(ListQueryRequest request) where TRecord : class;
 
-    public ValueTask<ItemQueryResult<TRecord>> ExecuteQueryAsync<TRecord>(ItemQueryRequest request) where TRecord : class, IEntity;
+    public ValueTask<ItemQueryResult<TRecord>> ExecuteQueryAsync<TRecord>(ItemQueryRequest request) where TRecord : class;
 
-    public ValueTask<CommandResult> ExecuteCommandAsync<TRecord>(CommandRequest<TRecord> request) where TRecord : class, IEntity;
+    public ValueTask<CommandResult> ExecuteCommandAsync<TRecord>(CommandRequest<TRecord> request) where TRecord : class;
 }
 ```
 

@@ -6,11 +6,11 @@
 
 namespace Blazr.App.Core;
 
-public class WeatherForecastEditContext
+public class DcoWeatherForecastEditContext
 {
     public string Name => "WeatherForecast Edit Context";
 
-    public Guid WeatherForecastUid { get; private set; }
+    public WeatherForecastUid WeatherForecastUid { get; private set; }
 
     public string? Summary { get; set; }
 
@@ -18,7 +18,9 @@ public class WeatherForecastEditContext
 
     public DateOnly? Date { get; set; }
 
-    public WeatherForecastEditContext(WeatherForecast record)
+    public Guid Uid => WeatherForecastUid.Value;
+
+    public DcoWeatherForecastEditContext(DcoWeatherForecast record)
     {
         this.WeatherForecastUid = record.WeatherForecastUid;
         this.Summary = record.Summary;
@@ -26,7 +28,7 @@ public class WeatherForecastEditContext
         this.Date = record.Date;
     }
 
-    public WeatherForecast AsRecord => new()
+    public DcoWeatherForecast AsRecord => new()
     {
         WeatherForecastUid = WeatherForecastUid,
         Summary = Summary ?? "Not Set",

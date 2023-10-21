@@ -9,16 +9,29 @@ public static class WeatherForecastInfrastructureServices
 {
     public static void AddWeatherForecastServerInfrastructureServices(this IServiceCollection services)
     {
-        services.AddScoped<IDboEntityMap<DboWeatherForecast, WeatherForecast>, WeatherForecastMap>();
+        services.AddScoped<IDboEntityMap<DboWeatherForecast, DcoWeatherForecast>, WeatherForecastMap>();
+        //services.AddScoped<IListRequestHandler, MappedListRequestServerHandler<InMemoryTestDbContext, DboWeatherForecast>>();
+        //services.AddScoped<IItemRequestHandler, MappedItemRequestServerHandler<InMemoryTestDbContext, DboWeatherForecast>>();
+        services.AddScoped<ICommandHandler<DcoWeatherForecast>, WeatherForecastCommandHandler<InMemoryTestDbContext>>();
+
+        services.AddTransient<IRecordFilterHandler<DcoWeatherForecast>, DcoWeatherForecastFilterHandler>();
+        services.AddTransient<IRecordSortHandler<DcoWeatherForecast>, DcoWeatherForecastSortHandler>();
+
+        //services.AddTransient<IRecordFilterHandler<DboWeatherForecast>, DboWeatherForecastFilterHandler>();
+        //services.AddTransient<IRecordSortHandler<DboWeatherForecast>, DboWeatherForecastSortHandler>();
+    }
+
+    public static void AddMapppedWeatherForecastServerInfrastructureServices(this IServiceCollection services)
+    {
+        services.AddScoped<IDboEntityMap<DboWeatherForecast, DcoWeatherForecast>, WeatherForecastMap>();
         services.AddScoped<IListRequestHandler, MappedListRequestServerHandler<InMemoryTestDbContext, DboWeatherForecast>>();
         services.AddScoped<IItemRequestHandler, MappedItemRequestServerHandler<InMemoryTestDbContext, DboWeatherForecast>>();
         services.AddScoped<ICommandHandler, MappedCommandServerHandler<InMemoryTestDbContext, DboWeatherForecast>>();
 
-        services.AddTransient<IRecordFilterHandler<WeatherForecast>, WeatherForecastFilterHandler>();
-        services.AddTransient<IRecordSortHandler<WeatherForecast>, WeatherForecastSortHandler>();
+        services.AddTransient<IRecordFilterHandler<DcoWeatherForecast>, DcoWeatherForecastFilterHandler>();
+        services.AddTransient<IRecordSortHandler<DcoWeatherForecast>, DcoWeatherForecastSortHandler>();
 
         services.AddTransient<IRecordFilterHandler<DboWeatherForecast>, DboWeatherForecastFilterHandler>();
         services.AddTransient<IRecordSortHandler<DboWeatherForecast>, DboWeatherForecastSortHandler>();
-
     }
 }

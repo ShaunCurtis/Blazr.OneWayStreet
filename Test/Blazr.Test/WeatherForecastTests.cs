@@ -55,9 +55,9 @@ public class WeatherForecastTests
         var testItem = WeatherForecastMap.Map(testDboItem);
 
         // Build an item request instance
-        var request = ItemQueryRequest.Create(new(testUid), testUid);
+        var request = ItemQueryRequest.Create(testUid);
         // Execute the query against the broker
-        var loadResult = await broker.ExecuteQueryAsync<WeatherForecast>(request);
+        var loadResult = await broker.ExecuteQueryAsync<DcoWeatherForecast>(request);
         // check the query was successful
         Assert.True(loadResult.Successful);
         
@@ -80,7 +80,7 @@ public class WeatherForecastTests
         var testFirstItem = WeatherForecastMap.Map(_testDataProvider.WeatherForecasts.Skip(startIndex).First());
 
         var request = new ListQueryRequest { PageSize = pageSize, StartIndex = startIndex };
-        var loadResult = await broker.ExecuteQueryAsync<WeatherForecast>(request);
+        var loadResult = await broker.ExecuteQueryAsync<DcoWeatherForecast>(request);
         Assert.True(loadResult.Successful);
 
         Assert.Equal(testCount, loadResult.TotalCount);
@@ -105,7 +105,7 @@ public class WeatherForecastTests
         var filters = new List<FilterDefinition>() { filterDefinition };
         var request = new ListQueryRequest { PageSize = pageSize, StartIndex = 0, Filters = filters };
 
-        var loadResult = await broker.ExecuteQueryAsync<WeatherForecast>(request);
+        var loadResult = await broker.ExecuteQueryAsync<DcoWeatherForecast>(request);
         Assert.True(loadResult.Successful);
 
         Assert.Equal(testCount, loadResult.TotalCount);
@@ -126,7 +126,7 @@ public class WeatherForecastTests
         var sortList = new List<SortDefinition>() { sort }; 
 
         var request = new ListQueryRequest { PageSize = 10000, StartIndex = 0, Sorters = sortList };
-        var loadResult = await broker.ExecuteQueryAsync<WeatherForecast>(request);
+        var loadResult = await broker.ExecuteQueryAsync<DcoWeatherForecast>(request);
         Assert.True(loadResult.Successful);
 
         Assert.Equal(testFirstItem, loadResult.Items.First());
@@ -135,7 +135,7 @@ public class WeatherForecastTests
         sortList = new List<SortDefinition>() { sort };
 
         request = new ListQueryRequest { PageSize = 100000, StartIndex = 0, Sorters = sortList };
-        loadResult = await broker.ExecuteQueryAsync<WeatherForecast>(request);
+        loadResult = await broker.ExecuteQueryAsync<DcoWeatherForecast>(request);
         Assert.True(loadResult.Successful);
 
         Assert.Equal(testFirstItem, loadResult.Items.Last());
@@ -153,13 +153,13 @@ public class WeatherForecastTests
 
         var testItem = WeatherForecastMap.Map(testDboItem);
 
-        var request = ItemQueryRequest.Create(new(testUid), testUid);
-        var loadResult = await broker.ExecuteQueryAsync<WeatherForecast>(request);
+        var request = ItemQueryRequest.Create(testUid);
+        var loadResult = await broker.ExecuteQueryAsync<DcoWeatherForecast>(request);
         Assert.True(loadResult.Successful);
 
         var dbItem = loadResult.Item!;
 
-        var recordEditContext = new WeatherForecastEditContext(dbItem);
+        var recordEditContext = new DcoWeatherForecastEditContext(dbItem);
 
         recordEditContext.TemperatureC = recordEditContext.TemperatureC + 10;
 
@@ -168,12 +168,12 @@ public class WeatherForecastTests
         // Note that the validation is on the WeatherForecastEditContext, not WeatherForecast!
         var newItem = recordEditContext.AsRecord;
 
-        var command = new CommandRequest<WeatherForecast>(newItem, CommandState.Update);
-        var commandResult = await broker.ExecuteCommandAsync<WeatherForecast>(command);
+        var command = new CommandRequest<DcoWeatherForecast>(newItem, CommandState.Update);
+        var commandResult = await broker.ExecuteCommandAsync<DcoWeatherForecast>(command);
         Assert.True(commandResult.Successful);
 
-        request = ItemQueryRequest.Create(new(testUid), testUid);
-        loadResult = await broker.ExecuteQueryAsync<WeatherForecast>(request);
+        request = ItemQueryRequest.Create(testUid);
+        loadResult = await broker.ExecuteQueryAsync<DcoWeatherForecast>(request);
         Assert.True(loadResult.Successful);
 
         var dbNewItem = loadResult.Item!;
@@ -183,7 +183,7 @@ public class WeatherForecastTests
         var testCount = _testDataProvider.WeatherForecasts.Count();
 
         var queryRequest = new ListQueryRequest { PageSize = 10, StartIndex = 0 };
-        var queryResult = await broker.ExecuteQueryAsync<WeatherForecast>(queryRequest);
+        var queryResult = await broker.ExecuteQueryAsync<DcoWeatherForecast>(queryRequest);
         Assert.True(queryResult.Successful);
 
         Assert.Equal(testCount, queryResult.TotalCount);
@@ -201,14 +201,14 @@ public class WeatherForecastTests
 
         var testItem = WeatherForecastMap.Map(testDboItem);
 
-        var command = new CommandRequest<WeatherForecast>(testItem, CommandState.Delete);
-        var commandResult = await broker.ExecuteCommandAsync<WeatherForecast>(command);
+        var command = new CommandRequest<DcoWeatherForecast>(testItem, CommandState.Delete);
+        var commandResult = await broker.ExecuteCommandAsync<DcoWeatherForecast>(command);
         Assert.True(commandResult.Successful);
 
         var testCount = _testDataProvider.WeatherForecasts.Count() - 1;
 
         var queryRequest = new ListQueryRequest { PageSize = 10, StartIndex = 0 };
-        var queryResult = await broker.ExecuteQueryAsync<WeatherForecast>(queryRequest);
+        var queryResult = await broker.ExecuteQueryAsync<DcoWeatherForecast>(queryRequest);
         Assert.True(queryResult.Successful);
 
         Assert.Equal(testCount, queryResult.TotalCount);
@@ -221,14 +221,14 @@ public class WeatherForecastTests
         var provider = GetServiceProvider();
         var broker = provider.GetService<IDataBroker>()!;
 
-        var newItem = new WeatherForecast { WeatherForecastUid = new(Guid.NewGuid()), Date = DateOnly.FromDateTime(DateTime.Now), Summary = "Testing", TemperatureC = 30 };
+        var newItem = new DcoWeatherForecast { WeatherForecastUid = new(Guid.NewGuid()), Date = DateOnly.FromDateTime(DateTime.Now), Summary = "Testing", TemperatureC = 30 };
 
-        var command = new CommandRequest<WeatherForecast>(newItem, CommandState.Add);
-        var commandResult = await broker.ExecuteCommandAsync<WeatherForecast>(command);
+        var command = new CommandRequest<DcoWeatherForecast>(newItem, CommandState.Add);
+        var commandResult = await broker.ExecuteCommandAsync<DcoWeatherForecast>(command);
         Assert.True(commandResult.Successful);
 
-        var request = ItemQueryRequest.Create(newItem.EntityUid, newItem.EntityUid.Value);
-        var loadResult = await broker.ExecuteQueryAsync<WeatherForecast>(request);
+        var request = ItemQueryRequest.Create(newItem.WeatherForecastUid.Value);
+        var loadResult = await broker.ExecuteQueryAsync<DcoWeatherForecast>(request);
         Assert.True(loadResult.Successful);
 
         var dbNewItem = loadResult.Item!;
@@ -238,7 +238,7 @@ public class WeatherForecastTests
         var testCount = _testDataProvider.WeatherForecasts.Count() + 1;
 
         var queryRequest = new ListQueryRequest { PageSize = 10, StartIndex = 0 };
-        var queryResult = await broker.ExecuteQueryAsync<WeatherForecast>(queryRequest);
+        var queryResult = await broker.ExecuteQueryAsync<DcoWeatherForecast>(queryRequest);
         Assert.True(queryResult.Successful);
 
         Assert.Equal(testCount, queryResult.TotalCount);

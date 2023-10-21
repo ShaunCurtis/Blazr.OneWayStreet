@@ -19,7 +19,7 @@ public sealed class ItemRequestServerHandler<TDbContext>
     }
 
     public async ValueTask<ItemQueryResult<TRecord>> ExecuteAsync<TRecord>(ItemQueryRequest request)
-        where TRecord : class, IEntity
+        where TRecord : class
     {
         // Try and get a registered custom handler
         var _customHandler = _serviceProvider.GetService<IItemRequestHandler<TRecord>>();
@@ -33,15 +33,17 @@ public sealed class ItemRequestServerHandler<TDbContext>
     }
 
     private async ValueTask<ItemQueryResult<TRecord>> GetItemAsync<TRecord>(ItemQueryRequest request)
-    where TRecord : class, IEntity
+    where TRecord : class
     {
         using var dbContext = _factory.CreateDbContext();
         dbContext.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
 
-        var record = await dbContext.Set<TRecord>().SingleOrDefaultAsync(item => item.EntityUid == request.Uid, request.Cancellation);
+        var record = await dbContext.Set<TRecord>().FindAsync(request.KeyValue, request.Cancellation);
+
+       // var record = await dbContext.Set<TRecord>().SingleOrDefaultAsync(item => item.EntityUid == request.Uid, request.Cancellation);
 
         if (record is null)
-            return ItemQueryResult<TRecord>.Failure($"No record retrieved with a Uid of {request.Uid}");
+            return ItemQueryResult<TRecord>.Failure($"No record retrieved with a Uid of {request.KeyValue.ToString()}");
 
         return ItemQueryResult<TRecord>.Success(record);
     }

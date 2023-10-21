@@ -16,17 +16,8 @@ public sealed class InMemoryTestDbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<DboWeatherForecast>().ToTable("WeatherForecasts");
+        modelBuilder.Entity<DboWeatherForecast>().ToTable("dboWeatherForecasts");
 
-        modelBuilder.Entity<WeatherForecast>()
-            .ToInMemoryQuery(()
-            => from w in this.dboWeatherForecasts
-               select new WeatherForecast
-               {
-                   WeatherForecastUid = new(w.Uid),
-                   Summary = w.Summary,
-                   Date = w.Date,
-                   TemperatureC = w.TemperatureC,
-               }).HasNoKey();
+        modelBuilder.Entity<WeatherForecast>().ToTable("WeatherForecasts");
     }
 }

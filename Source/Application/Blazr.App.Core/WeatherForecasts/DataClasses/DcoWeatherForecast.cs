@@ -5,9 +5,11 @@
 /// ============================================================
 namespace Blazr.App.Core;
 
-public sealed record WeatherForecast : ICommandEntity
+public readonly record struct WeatherForecastUid(Guid Value);
+
+public sealed record DcoWeatherForecast : ICommandEntity
 {
-    public Guid WeatherForecastUid { get; init; }
+    public WeatherForecastUid WeatherForecastUid { get; init; } = new WeatherForecastUid(Guid.NewGuid());
 
     public DateOnly Date { get; init; } 
 

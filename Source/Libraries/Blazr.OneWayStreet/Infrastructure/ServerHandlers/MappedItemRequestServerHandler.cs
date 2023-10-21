@@ -20,7 +20,7 @@ public sealed class MappedItemRequestServerHandler<TDbContext, TIn>
     }
 
     public async ValueTask<ItemQueryResult<TOut>> ExecuteAsync<TOut>(ItemQueryRequest request)
-        where TOut : class, IEntity
+        where TOut : class
     {
         // Try and get a registered custom handler
         var _customHandler = _serviceProvider.GetService<IItemRequestHandler<TOut>>();
@@ -34,7 +34,7 @@ public sealed class MappedItemRequestServerHandler<TDbContext, TIn>
     }
 
     private async ValueTask<ItemQueryResult<TOut>> GetItemAsync<TOut>(ItemQueryRequest request)
-    where TOut : class, IEntity
+    where TOut : class
     {
         // Get and check we have a mapper for the Dbo object to Dco Domain Model
         IDboEntityMap<TIn, TOut>? mapper = null;
@@ -50,12 +50,12 @@ public sealed class MappedItemRequestServerHandler<TDbContext, TIn>
         var inRecord = await dbContext.Set<TIn>().FindAsync(request.KeyValue, request.Cancellation);
 
         if (inRecord is null)
-            return ItemQueryResult<TOut>.Failure($"No record retrieved with a Uid of {request.Uid}");
+            return ItemQueryResult<TOut>.Failure($"No record retrieved with a Uid of {request.KeyValue.ToString()}");
 
         var outRecord = mapper.MapTo(inRecord);
 
         if (outRecord is null)
-            return ItemQueryResult<TOut>.Failure($"Unable to map record retrieved with a Uid of {request.Uid}");
+            return ItemQueryResult<TOut>.Failure($"Unable to map record retrieved with a Uid of {request.KeyValue.ToString()}");
 
         return ItemQueryResult<TOut>.Success(outRecord);
     }

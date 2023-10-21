@@ -5,15 +5,15 @@
 /// ============================================================
 namespace Blazr.App.Infrastructure;
 
-public class WeatherForecastMap : IDboEntityMap<DboWeatherForecast, WeatherForecast>
+public class WeatherForecastMap : IDboEntityMap<DboWeatherForecast, DcoWeatherForecast>
 {
-    public WeatherForecast MapTo(DboWeatherForecast item)
+    public DcoWeatherForecast MapTo(DboWeatherForecast item)
         => Map(item);
 
-    public DboWeatherForecast MapTo(WeatherForecast item)
+    public DboWeatherForecast MapTo(DcoWeatherForecast item)
         => Map(item);
 
-    public static WeatherForecast Map(DboWeatherForecast item)
+    public static DcoWeatherForecast Map(DboWeatherForecast item)
         => new()
         {
             WeatherForecastUid = new(item.Uid),
@@ -22,7 +22,7 @@ public class WeatherForecastMap : IDboEntityMap<DboWeatherForecast, WeatherForec
             Date = item.Date,
         };
 
-    public static DboWeatherForecast Map(WeatherForecast item)
+    public static DboWeatherForecast Map(DcoWeatherForecast item)
         => new()
         {
             Uid = item.WeatherForecastUid.Value,

@@ -1,4 +1,6 @@
-﻿/// ============================================================
+﻿using System.Reflection.Metadata.Ecma335;
+
+/// ============================================================
 /// Author: Shaun Curtis, Cold Elm Coders
 /// License: Use And Donate
 /// If you use it, donate something to a charity somewhere
@@ -10,10 +12,19 @@ namespace Blazr.App.Infrastructure;
 /// </summary>
 public sealed class TestDataProvider
 {
-    public IEnumerable<DboWeatherForecast> WeatherForecasts => _weatherForecasts ?? Enumerable.Empty<DboWeatherForecast>();
+    public IEnumerable<DboWeatherForecast> WeatherForecasts => _dboWeatherForecasts ?? Enumerable.Empty<DboWeatherForecast>();
 
+    private IEnumerable<WeatherForecast> weatherForecasts
+    {
+        get
+        {
+            var items = _dboWeatherForecasts?.Select(item => new WeatherForecast { WeatherForecastUid = item.Uid, Date = item.Date, Summary = item.Summary, TemperatureC = item.TemperatureC }) ?? Enumerable.Empty<WeatherForecast>();
+            return items ?? Enumerable.Empty<WeatherForecast>();
+        }
+    }
+       
 
-    private List<DboWeatherForecast>? _weatherForecasts;
+    private List<DboWeatherForecast>? _dboWeatherForecasts;
 
     private TestDataProvider()
         => this.Load();
@@ -22,15 +33,18 @@ public sealed class TestDataProvider
     {
         using var dbContext = factory.CreateDbContext();
 
-        var weatherForecasts = dbContext.Set<DboWeatherForecast>();
+        var dboWeatherForecasts = dbContext.Set<DboWeatherForecast>();
+        var weatherForecasts = dbContext.Set<WeatherForecast>();
 
         // Check if we already have a full data set
         // If not clear down any existing data and start again
         if (weatherForecasts.Count() == 0)
-        {
+            dbContext.AddRange(this.weatherForecasts);
+
+        if (dboWeatherForecasts.Count() == 0)
             dbContext.AddRange(this.WeatherForecasts);
-            dbContext.SaveChanges();
-        }
+
+        dbContext.SaveChanges();
     }
 
     public void Load()
@@ -48,7 +62,7 @@ public sealed class TestDataProvider
     private void LoadWeatherForcasts()
     {
         var rng = new Random();
-        _weatherForecasts = Enumerable.Range(1, _recordsToGet).Select(index => new DboWeatherForecast
+        _dboWeatherForecasts = Enumerable.Range(1, _recordsToGet).Select(index => new DboWeatherForecast
         {
             Uid = Guid.NewGuid(),
             Date = DateOnly.FromDateTime(DateTime.Now).AddDays(index),

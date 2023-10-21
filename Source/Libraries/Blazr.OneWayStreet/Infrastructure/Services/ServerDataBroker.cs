@@ -22,12 +22,12 @@ public sealed class ServerDataBroker : IDataBroker
         _commandHandler = commandHandler;
     }
 
-    public ValueTask<ItemQueryResult<TRecord>> ExecuteQueryAsync<TRecord>(ItemQueryRequest request) where TRecord : class, IEntity
+    public ValueTask<ItemQueryResult<TRecord>> ExecuteQueryAsync<TRecord>(ItemQueryRequest request) where TRecord : class
         => _itemRequestHandler.ExecuteAsync<TRecord>(request);
 
     public ValueTask<ListQueryResult<TRecord>> ExecuteQueryAsync<TRecord>(ListQueryRequest request) where TRecord : class
         => _listRequestHandler.ExecuteAsync<TRecord>(request);
 
-    public ValueTask<CommandResult> ExecuteCommandAsync<TRecord>(CommandRequest<TRecord> request) where TRecord : class, IEntity
+    public ValueTask<CommandResult> ExecuteCommandAsync<TRecord>(CommandRequest<TRecord> request) where TRecord : class
         => _commandHandler.ExecuteAsync<TRecord>(request);
 }
