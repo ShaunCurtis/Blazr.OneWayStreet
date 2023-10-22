@@ -3,11 +3,13 @@
 /// License: Use And Donate
 /// If you use it, donate something to a charity somewhere
 /// ============================================================
+using System.ComponentModel.DataAnnotations;
+
 namespace Blazr.App.Core;
 
 public sealed record WeatherForecast : ICommandEntity
 {
-    public Guid WeatherForecastUid { get; init; }
+    [Key] public Guid WeatherForecastUid { get; init; }
 
     public DateOnly Date { get; init; } 
 

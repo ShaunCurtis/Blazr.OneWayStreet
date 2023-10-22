@@ -12,9 +12,9 @@ namespace Blazr.App.Infrastructure;
 /// </summary>
 public sealed class TestDataProvider
 {
-    public IEnumerable<DboWeatherForecast> WeatherForecasts => _dboWeatherForecasts ?? Enumerable.Empty<DboWeatherForecast>();
+    public IEnumerable<DboWeatherForecast> DboWeatherForecasts => _dboWeatherForecasts ?? Enumerable.Empty<DboWeatherForecast>();
 
-    private IEnumerable<WeatherForecast> weatherForecasts
+    public IEnumerable<WeatherForecast> WeatherForecasts
     {
         get
         {
@@ -39,10 +39,10 @@ public sealed class TestDataProvider
         // Check if we already have a full data set
         // If not clear down any existing data and start again
         if (weatherForecasts.Count() == 0)
-            dbContext.AddRange(this.weatherForecasts);
+            dbContext.AddRange(this.WeatherForecasts);
 
         if (dboWeatherForecasts.Count() == 0)
-            dbContext.AddRange(this.WeatherForecasts);
+            dbContext.AddRange(this.DboWeatherForecasts);
 
         dbContext.SaveChanges();
     }

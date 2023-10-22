@@ -16,7 +16,7 @@ public sealed class InMemoryTestDbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<DboWeatherForecast>().ToTable("dboWeatherForecasts");
+        modelBuilder.Entity<DboWeatherForecast>().ToTable("DboWeatherForecasts");
 
         modelBuilder.Entity<WeatherForecast>().ToTable("WeatherForecasts");
     }

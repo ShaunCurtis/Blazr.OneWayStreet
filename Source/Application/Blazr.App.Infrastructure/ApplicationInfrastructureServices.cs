@@ -36,7 +36,7 @@ public static class ApplicationInfrastructureServices
         services.AddScoped<ICommandHandler, CommandServerHandler<InMemoryTestDbContext>>();
 
         // Add any individual entity services
-        services.AddWeatherForecastServerInfrastructureServices();
+        services.AddMappedWeatherForecastServerInfrastructureServices();
     }
 
     public static void AddTestData(IServiceProvider provider)

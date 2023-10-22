@@ -21,4 +21,8 @@
 	  <ProjectReference Include="..\Blazr.App.Core\Blazr.App.Core.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="WeatherForecasts\Handlers\" />
+	</ItemGroup>
+
 </Project>
