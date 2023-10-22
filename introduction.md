@@ -42,9 +42,71 @@ public enum CommandState
 
 The library provides a server based implementation of the pattern over Entity Framework Core.  
 
+### Service Definitions
+
+Each test builds a Service Collection [as you would in a normal application].  `IServiceCollection` extension methods are used to encapsulate service provision for the framework and specific entities. 
+
+```csharp
+    public WeatherForecastTests()
+        => _testDataProvider = TestDataProvider.Instance();
+
+    private ServiceProvider GetServiceProvider()
+    {
+        var services = new ServiceCollection();
+        services.AddAppServerInfrastructureServices();
+        services.AddLogging(builder => builder.AddDebug());
+
+        var provider = services.BuildServiceProvider();
+
+        // get the DbContext factory and add the test data
+        var factory = provider.GetService<IDbContextFactory<InMemoryTestDbContext>>();
+        if (factory is not null)
+            TestDataProvider.Instance().LoadDbContext<InMemoryTestDbContext>(factory);
+
+        return provider!;
+    }
+```
+
+`AddAppServerInfrastructureServices` is a `IServiceCollection` extension method.  It:
+
+1. Adds the DBContext Factory.
+2. Adds the Server Data Broker.
+3. Adds the generic data handlers.
+4. Calls the entity/feature specific extension methods. 
+
+```csharp
+public static void AddAppServerInfrastructureServices(this IServiceCollection services)
+{
+    services.AddDbContextFactory<InMemoryTestDbContext>(options
+        => options.UseInMemoryDatabase($"TestDatabase-{Guid.NewGuid().ToString()}"));
+
+    services.AddScoped<IDataBroker, ServerDataBroker>();
+
+    // Add the standard handlers
+    services.AddScoped<IListRequestHandler, ListRequestServerHandler<InMemoryTestDbContext>>();
+    services.AddScoped<IItemRequestHandler, ItemRequestServerHandler<InMemoryTestDbContext>>();
+    services.AddScoped<ICommandHandler, CommandServerHandler<InMemoryTestDbContext>>();
+
+    // Add any individual entity services
+    services.AddWeatherForecastServerInfrastructureServices();
+}
+```
+
+`AddWeatherForecastServerInfrastructureServices` adds the entity specific services.  In this case, just the filter and sorter handlers.
+
+```csharp
+public static void AddWeatherForecastServerInfrastructureServices(this IServiceCollection services)
+{
+    services.AddTransient<IRecordFilterHandler<WeatherForecast>, WeatherForecastFilterHandler>();
+    services.AddTransient<IRecordSortHandler<WeatherForecast>, WeatherForecastSortHandler>();
+}
+```
+
 ### GetAForecast Test
 
-`GetAForecast` demonstrates the basic data pipeline coding pattern.
+`GetAForecast` demonstrates the basic data pipeline coding pattern.  The inline comments expain the detail.
+
+The test gets an Id from the test provider and requests the record through the `IDataBroker`.
 
 ```csharp
 [Fact]
@@ -53,26 +115,23 @@ public async void GetAForecast()
     // Get a fully stocked DI container
     var provider = GetServiceProvider();
 
-    //Get the data broker
+    //Injects the data broker
     var broker = provider.GetService<IDataBroker>()!;
 
-    // Get the test item from the Test Provider
-    var testDboItem = _testDataProvider.WeatherForecasts.First();
-    // Gets the Id to retrieve
-    var testUid = testDboItem.Uid;
+    // Get the test item and it's Id from the Test Provider
+    var testItem = _testDataProvider.WeatherForecasts.First();
+    var testUid = testItem.WeatherForecastUid;
 
-    // Get the Domain object - the Test data provider deals in dbo objects
-    var testItem = DboWeatherForecastMap.Map(testDboItem);
-
-    // Build an item request instance
-    var request = new ItemQueryRequest(new(testUid));
-    // Execute the query against the broker
+    // Builds an item request instance and Executes the query against the broker
+    var request = ItemQueryRequest.Create(testUid);
     var loadResult = await broker.ExecuteQueryAsync<WeatherForecast>(request);
+
     // check the query was successful
     Assert.True(loadResult.Successful);
-        
+    
     // get the returned record 
     var dbItem = loadResult.Item;
+
     // check it matches the test record
     Assert.Equal(testItem, dbItem);
 }
@@ -80,7 +139,7 @@ public async void GetAForecast()
 
 ### GetForecastList
 
-`GetForecastList` demonstrates getting a paged list from the data provider.
+`GetForecastList` demonstrates a paged list request.
 
 ```csharp
 [Theory]
@@ -92,13 +151,16 @@ public async void GetForecastList(int startIndex, int pageSize)
     var provider = GetServiceProvider();
     var broker = provider.GetService<IDataBroker>()!;
 
+    // Get the total expected count and the first record of the page
     var testCount = _testDataProvider.WeatherForecasts.Count();
-    var testFirstItem = DboWeatherForecastMap.Map(_testDataProvider.WeatherForecasts.Skip(startIndex).First());
+    var testFirstItem = _testDataProvider.WeatherForecasts.Skip(startIndex).First();
 
+    // Create a request and execute it against the broker
     var request = new ListQueryRequest { PageSize = pageSize, StartIndex = startIndex };
     var loadResult = await broker.ExecuteQueryAsync<WeatherForecast>(request);
     Assert.True(loadResult.Successful);
 
+    // Check the results are as expected
     Assert.Equal(testCount, loadResult.TotalCount);
     Assert.Equal(pageSize, loadResult.Items.Count());
     Assert.Equal(testFirstItem, loadResult.Items.First());
@@ -109,6 +171,8 @@ public async void GetForecastList(int startIndex, int pageSize)
 
 `GetAFilteredForecastList` demonstrates filtering a paged list from the data provider.
 
+Filters are defined in classes using the *Specification* pattern and passed by theoir names.  This loose coupling works in both server and API's contexts.
+
 ```csharp
 [Fact]
 public async void GetAFilteredForecastList()
@@ -116,20 +180,23 @@ public async void GetAFilteredForecastList()
     var provider = GetServiceProvider();
     var broker = provider.GetService<IDataBroker>()!;
 
+    // Set up the test data
     var pageSize = 2;
     var testSummary = "Warm";
     var testQuery = _testDataProvider.WeatherForecasts.Where(item => testSummary.Equals(item.Summary, StringComparison.CurrentCultureIgnoreCase));
-
     var testCount = testQuery.Count();
-    var testFirstItem = DboWeatherForecastMap.Map(testQuery.First());
+    var testFirstItem = testQuery.First();
 
+    // define the filter to use
     var filterDefinition = new FilterDefinition(ApplicationConstants.WeatherForecast.FilterWeatherForecastsBySummary, "Warm");
     var filters = new List<FilterDefinition>() { filterDefinition };
-    var request = new ListQueryRequest { PageSize = pageSize, StartIndex = 0, Filters = filters };
 
+    // Define the query and execute it against the broker
+    var request = new ListQueryRequest { PageSize = pageSize, StartIndex = 0, Filters = filters };
     var loadResult = await broker.ExecuteQueryAsync<WeatherForecast>(request);
     Assert.True(loadResult.Successful);
 
+    // Test the results are as expected
     Assert.Equal(testCount, loadResult.TotalCount);
     Assert.Equal(pageSize, loadResult.Items.Count());
     Assert.Equal(testFirstItem, loadResult.Items.First());
@@ -148,21 +215,25 @@ public async void DeleteAForecast()
     var provider = GetServiceProvider();
     var broker = provider.GetService<IDataBroker>()!;
 
-    var testDboItem = _testDataProvider.WeatherForecasts.First();
-    var testUid = testDboItem.Uid;
+    // get the test record
+    var testItem = _testDataProvider.WeatherForecasts.First();
+    var testUid = testItem.WeatherForecastUid;
+    var testCount = _testDataProvider.WeatherForecasts.Count() - 1;
 
-    var testItem = DboWeatherForecastMap.Map(testDboItem);
-
+    // build a command and execute it against the database
     var command = new CommandRequest<WeatherForecast>(testItem, CommandState.Delete);
     var commandResult = await broker.ExecuteCommandAsync<WeatherForecast>(command);
     Assert.True(commandResult.Successful);
 
-    var testCount = _testDataProvider.WeatherForecasts.Count() - 1;
+    // build a item request and ensure the record no longwer exists
+    var request = ItemQueryRequest.Create(testUid);
+    var loadResult = await broker.ExecuteQueryAsync<WeatherForecast>(request);
+    Assert.False(loadResult.Successful);
 
+    // build a list query and check we have one less rcord 
     var queryRequest = new ListQueryRequest { PageSize = 10, StartIndex = 0 };
     var queryResult = await broker.ExecuteQueryAsync<WeatherForecast>(queryRequest);
     Assert.True(queryResult.Successful);
-
     Assert.Equal(testCount, queryResult.TotalCount);
 }
 ```
@@ -171,7 +242,7 @@ public async void DeleteAForecast()
 
 "How do you edit a Record"?
 
-This test demonstrates using a record edit context object, in this case `WeatherForecastEditContext`, to edit a record.  In a ral world setting your edit form would plug into the record edit context, your validation would be on the record edit context, and you would create the `CommandRequest` object from `AsRecord`.    
+This test demonstrates using a record edit context object, in this case `WeatherForecastEditContext`, to edit a record.  In a real world setting your edit form would plug into the record edit context, your validation would be on the record edit context, and you would create the `CommandRequest` object from `AsRecord`.    
 
 ```csharp
 [Fact]
@@ -181,19 +252,20 @@ public async void UpdateAForecast()
     var provider = GetServiceProvider();
     var broker = provider.GetService<IDataBroker>()!;
 
-    var testDboItem = _testDataProvider.WeatherForecasts.First();
-    var testUid = testDboItem.Uid;
+    // Get a record id to edit
+    var testItem = _testDataProvider.WeatherForecasts.First();
+    var testUid = testItem.WeatherForecastUid;
 
-    var testItem = DboWeatherForecastMap.Map(testDboItem);
-
-    var request = new ItemQueryRequest(new(testUid));
+    // Build an item query and execute it against the broker to get the record to edit
+    var request = ItemQueryRequest.Create(testUid);
     var loadResult = await broker.ExecuteQueryAsync<WeatherForecast>(request);
     Assert.True(loadResult.Successful);
-
     var dbItem = loadResult.Item!;
 
+    // construct a recordEditContext for the record
+    // Normally you would plug your edit form fields into this context
+    // We just update the temperature
     var recordEditContext = new WeatherForecastEditContext(dbItem);
-
     recordEditContext.TemperatureC = recordEditContext.TemperatureC + 10;
 
     // In a real edit setting, you would be doing validation to ensure the
@@ -201,24 +273,25 @@ public async void UpdateAForecast()
     // Note that the validation is on the WeatherForecastEditContext, not WeatherForecast!
     var newItem = recordEditContext.AsRecord;
 
+    // Create an update command and execute it against the broker
     var command = new CommandRequest<WeatherForecast>(newItem, CommandState.Update);
     var commandResult = await broker.ExecuteCommandAsync<WeatherForecast>(command);
     Assert.True(commandResult.Successful);
 
-    request = new ItemQueryRequest(new(testUid));
+    // Get the updated record from the broker and test they are the same
+    request = ItemQueryRequest.Create(testUid);
     loadResult = await broker.ExecuteQueryAsync<WeatherForecast>(request);
     Assert.True(loadResult.Successful);
-
     var dbNewItem = loadResult.Item!;
-
     Assert.Equal(newItem, dbNewItem);
 
-    var testCount = _testDataProvider.WeatherForecasts.Count();
-
+    // Execute a list query against the data broker and check the count is still the same
+    // i.e. we haven't added a record instead of updating one
     var queryRequest = new ListQueryRequest { PageSize = 10, StartIndex = 0 };
     var queryResult = await broker.ExecuteQueryAsync<WeatherForecast>(queryRequest);
     Assert.True(queryResult.Successful);
 
+    var testCount = _testDataProvider.WeatherForecasts.Count();
     Assert.Equal(testCount, queryResult.TotalCount);
 }
 ```
