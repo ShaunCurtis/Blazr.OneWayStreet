@@ -161,7 +161,7 @@ public class MappedWeatherForecastTests
 
         var dbItem = loadResult.Item!;
 
-        var newItem = dbItem with { TemperatureC = dbItem.TemperatureC + 10 };
+        var newItem = dbItem with { Temperature = new(dbItem.Temperature.TemperatureC + 10) };
 
         var command = new CommandRequest<DcoWeatherForecast>(newItem, CommandState.Update);
         var commandResult = await broker.ExecuteCommandAsync<DcoWeatherForecast>(command);
@@ -217,7 +217,7 @@ public class MappedWeatherForecastTests
         var broker = provider.GetService<IDataBroker>()!;
 
         var newItemGuid = Guid.NewGuid();
-        var newItem = new DcoWeatherForecast { WeatherForecastUid = new(newItemGuid), Date = DateOnly.FromDateTime(DateTime.Now), Summary = "Testing", TemperatureC = 30 };
+        var newItem = new DcoWeatherForecast { WeatherForecastUid = new(newItemGuid), Date = DateOnly.FromDateTime(DateTime.Now), Summary = "Testing", Temperature = new(30) };
 
         var command = new CommandRequest<DcoWeatherForecast>(newItem, CommandState.Add);
         var commandResult = await broker.ExecuteCommandAsync<DcoWeatherForecast>(command);
