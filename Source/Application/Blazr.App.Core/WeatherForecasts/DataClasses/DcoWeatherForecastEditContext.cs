@@ -14,7 +14,7 @@ public class DcoWeatherForecastEditContext
 
     public string? Summary { get; set; }
 
-    public int? TemperatureC { get; set; }
+    public decimal? TemperatureC { get; set; }
 
     public DateOnly? Date { get; set; }
 
@@ -24,7 +24,7 @@ public class DcoWeatherForecastEditContext
     {
         this.WeatherForecastUid = record.WeatherForecastUid;
         this.Summary = record.Summary;
-        this.TemperatureC = record.TemperatureC;
+        this.TemperatureC = record.Temperature.TemperatureC;
         this.Date = record.Date;
     }
 
@@ -33,6 +33,6 @@ public class DcoWeatherForecastEditContext
         WeatherForecastUid = WeatherForecastUid,
         Summary = Summary ?? "Not Set",
         Date = this.Date ?? DateOnly.FromDateTime(DateTime.Now),
-        TemperatureC = this.TemperatureC ?? 0
+        Temperature = new(this.TemperatureC ?? 0)
     };
 }

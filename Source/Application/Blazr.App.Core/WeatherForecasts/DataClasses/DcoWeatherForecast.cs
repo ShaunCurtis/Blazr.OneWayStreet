@@ -13,7 +13,7 @@ public sealed record DcoWeatherForecast : ICommandEntity
 
     public DateOnly Date { get; init; } 
 
-    public int TemperatureC { get; init; }
+    public Temperature Temperature { get; init; }
 
     public string? Summary { get; init; }
 }

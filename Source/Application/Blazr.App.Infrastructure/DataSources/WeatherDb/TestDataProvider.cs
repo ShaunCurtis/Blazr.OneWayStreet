@@ -18,7 +18,7 @@ public sealed class TestDataProvider
     {
         get
         {
-            var items = _dboWeatherForecasts?.Select(item => new WeatherForecast { WeatherForecastUid = item.Uid, Date = item.Date, Summary = item.Summary, TemperatureC = item.TemperatureC }) ?? Enumerable.Empty<WeatherForecast>();
+            var items = _dboWeatherForecasts?.Select(item => new WeatherForecast { WeatherForecastUid = item.Uid, Date = item.Date, Summary = item.Summary, TemperatureC = (int)item.TemperatureC }) ?? Enumerable.Empty<WeatherForecast>();
             return items ?? Enumerable.Empty<WeatherForecast>();
         }
     }

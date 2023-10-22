@@ -11,7 +11,7 @@ public sealed record DboWeatherForecast : ICommandEntity, IKeyedEntity
 
     public DateOnly Date { get; init; }
 
-    public int TemperatureC { get; init; }
+    public decimal TemperatureC { get; init; }
 
     public string? Summary { get; init; }
 
