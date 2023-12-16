@@ -17,7 +17,7 @@ public abstract class RecordSortHandler<TRecord>
     /// <param name="query"></param>
     /// <param name="definitions"></param>
     /// <returns></returns>
-    public IQueryable<TRecord> AddSortsToQuery(IQueryable<TRecord> query, IEnumerable<SortDefinition> definitions)
+    public virtual IQueryable<TRecord> AddSortsToQuery(IQueryable<TRecord> query, IEnumerable<SortDefinition> definitions)
     {
         if (definitions.Any())
         {

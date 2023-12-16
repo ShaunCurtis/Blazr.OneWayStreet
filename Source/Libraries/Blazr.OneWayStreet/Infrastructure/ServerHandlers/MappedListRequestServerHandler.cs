@@ -51,7 +51,7 @@ public class MappedListRequestServerHandler<TDbContext, TInRecord>
 
         // Throw an exception if we have no mapper defined 
         if (mapper is null)
-            throw new DataPipelineException($"No mapper is defined for {this.GetType().FullName} for {(typeof(TIn).FullName)}");
+            throw new DataPipelineException($"No mapper is defined for {this.GetType().FullName} for {(typeof(TOut).FullName)}");
 
         // Get a Unit of Work DbContext for the scope of the method
         using var dbContext = _factory.CreateDbContext();
@@ -70,7 +70,7 @@ public class MappedListRequestServerHandler<TDbContext, TInRecord>
 
             // Throw an exception as we have filters defined, but no handler 
             if (filterHandler is null)
-                throw new DataPipelineException($"Filters are defined in {this.GetType().FullName} for {(typeof(TIn).FullName)} but no FilterProvider service is registered");
+                throw new DataPipelineException($"Filters are defined in {this.GetType().FullName} for {(typeof(TOut).FullName)} but no FilterProvider service is registered");
 
             // Apply the filters
             inQuery = filterHandler.AddFiltersToQuery(request.Filters, inQuery);
