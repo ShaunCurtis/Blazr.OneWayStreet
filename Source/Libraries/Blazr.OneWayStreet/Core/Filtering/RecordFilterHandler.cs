@@ -11,6 +11,9 @@ public abstract class RecordFilterHandler<TRecord>
 {
     public IQueryable<TRecord> AddFiltersToQuery(IEnumerable<FilterDefinition> filters, IQueryable<TRecord> query)
     {
+        if (filters.Count() == 0 && DefaultSpecification is not null )
+            query = DefaultSpecification.AsQueryAble(query);
+
         foreach (var filter in filters)
         {
             var specification = GetSpecification(filter);
@@ -25,4 +28,6 @@ public abstract class RecordFilterHandler<TRecord>
     }
 
     public abstract IPredicateSpecification<TRecord>? GetSpecification(FilterDefinition filter);
+
+    public virtual IPredicateSpecification<TRecord>? DefaultSpecification => null;
 }

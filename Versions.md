@@ -24,10 +24,11 @@ Changes:
 2. Switch to `FindAsync` to find items in `ItemRequestServerHandler`.
 3. Added separate DcoWeatherForecast as domain object for mapped pipeline.
  
-### 1.4.0
+### 1.4.1
 
 20-Dec-2023
 
 Changes:
 
 1. Fixes to all the Mapped Server HandlerS to define in and out types in the definitions
+2. Added default filter specification to `RecordFilterHandler`.

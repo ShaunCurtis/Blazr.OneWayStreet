@@ -56,37 +56,32 @@ public class MappedListRequestServerHandler<TDbContext, TOutRecord, TInRecord> :
         // Get the IQueryable DbSet for TRecord
         IQueryable<TInRecord> inQuery = dbContext.Set<TInRecord>();
 
-        // If we have filters defined we need to get the Filter Handler for TRecord
-        // and apply the predicate delegates to the IQueryable instance
-        if (request.Filters.Count() > 0)
-        {
-            // Get the Record Filter
-            filterHandler = _serviceProvider.GetService<IRecordFilterHandler<TInRecord>>();
+        // Get the Record Filter
+        // Even of we have no specific filters defined we may hav a default filter
+        filterHandler = _serviceProvider.GetService<IRecordFilterHandler<TInRecord>>();
 
-            // Throw an exception as we have filters defined, but no handler 
-            if (filterHandler is null)
-                throw new DataPipelineException($"Filters are defined in {this.GetType().FullName} for {(typeof(TOutRecord).FullName)} but no FilterProvider service is registered");
+        // Throw an exception as we have filters defined, but no handler 
+        if (request.Filters.Count() > 0 && filterHandler is null)
+            throw new DataPipelineException($"Filters are defined in {this.GetType().FullName} for {(typeof(TOutRecord).FullName)} but no FilterProvider service is registered");
 
-            // Apply the filters
+        // Apply the filters
+        if (filterHandler is not null)
             inQuery = filterHandler.AddFiltersToQuery(request.Filters, inQuery);
-        }
 
         // Get the total record count after applying the filters
         totalRecordCount = inQuery is IAsyncEnumerable<TInRecord>
             ? await inQuery.CountAsync(request.Cancellation)
             : inQuery.Count();
 
-        // If we have sorters we need to gets the Sort Handler for TRecord
-        // and apply the sorters to thw IQueryable instance
-        if (request.Sorters.Count() > 0)
-        {
-            sorterHandler = _serviceProvider.GetService<IRecordSortHandler<TInRecord>>();
+        // Get the Record Sorter
+        // Even of we have no specific sorters defined we may hav a default
+        sorterHandler = _serviceProvider.GetService<IRecordSortHandler<TInRecord>>();
 
-            if (sorterHandler is null)
-                throw new DataPipelineException($"Sorters are defined in {this.GetType().FullName} for {(typeof(TInRecord).FullName)} but no SorterProvider service is registered");
+        if (request.Sorters.Count() > 0 && sorterHandler is null)
+            throw new DataPipelineException($"Sorters are defined in {this.GetType().FullName} for {(typeof(TInRecord).FullName)} but no SorterProvider service is registered");
 
+        if (sorterHandler is not null)
             inQuery = sorterHandler.AddSortsToQuery(inQuery, request.Sorters);
-        }
 
         // Apply paging to the filtered and sorted IQueryable
         if (request.PageSize > 0)
