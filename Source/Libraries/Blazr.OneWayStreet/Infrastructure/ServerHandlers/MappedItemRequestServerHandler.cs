@@ -5,10 +5,17 @@
 /// ============================================================
 namespace Blazr.OneWayStreet.Infrastructure;
 
-public sealed class MappedItemRequestServerHandler<TDbContext, TIn>
-    : IItemRequestHandler
+/// <summary>
+///  Executes an item query on the data store 
+/// </summary>
+/// <typeparam name="TDbContext">Database Context to apply query to</typeparam>
+/// <typeparam name="TOutRecord">Domain Record to Map the incoming infrastructure record to</typeparam>
+/// <typeparam name="TInRecord">Infrasrtructure Record to retrieved from the context</typeparam>
+public sealed class MappedItemRequestServerHandler<TDbContext, TOutRecord, TInRecord>
+    : IItemRequestHandler<TOutRecord>
     where TDbContext : DbContext
-    where TIn : class, IKeyedEntity
+    where TInRecord : class, IKeyedEntity
+    where TOutRecord : class
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly IDbContextFactory<TDbContext> _factory;
@@ -19,44 +26,34 @@ public sealed class MappedItemRequestServerHandler<TDbContext, TIn>
         _factory = factory;
     }
 
-    public async ValueTask<ItemQueryResult<TOut>> ExecuteAsync<TOut>(ItemQueryRequest request)
-        where TOut : class
+    public async ValueTask<ItemQueryResult<TOutRecord>> ExecuteAsync(ItemQueryRequest request)
     {
-        // Try and get a registered custom handler
-        var _customHandler = _serviceProvider.GetService<IItemRequestHandler<TOut>>();
-
-        // If we one is registered in DI and execute it
-        if (_customHandler is not null)
-            return await _customHandler.ExecuteAsync(request);
-
-        // If not run the base handler
-        return await this.GetItemAsync<TOut>(request);
+        return await this.GetItemAsync(request);
     }
 
-    private async ValueTask<ItemQueryResult<TOut>> GetItemAsync<TOut>(ItemQueryRequest request)
-    where TOut : class
+    private async ValueTask<ItemQueryResult<TOutRecord>> GetItemAsync(ItemQueryRequest request)
     {
         // Get and check we have a mapper for the Dbo object to Dco Domain Model
-        IDboEntityMap<TIn, TOut>? mapper = null;
-        mapper = _serviceProvider.GetService<IDboEntityMap<TIn, TOut>>();
+        IDboEntityMap<TInRecord, TOutRecord>? mapper = null;
+        mapper = _serviceProvider.GetService<IDboEntityMap<TInRecord, TOutRecord>>();
 
         // Throw an exception if we have no mapper defined 
         if (mapper is null)
-            throw new DataPipelineException($"No mapper is defined for {this.GetType().FullName} for {(typeof(TIn).FullName)}");
+            throw new DataPipelineException($"No mapper is defined for {this.GetType().FullName} for {(typeof(TInRecord).FullName)}");
 
         using var dbContext = _factory.CreateDbContext();
         dbContext.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
 
-        var inRecord = await dbContext.Set<TIn>().FindAsync(request.KeyValue, request.Cancellation);
+        var inRecord = await dbContext.Set<TInRecord>().FindAsync(request.KeyValue, request.Cancellation);
 
         if (inRecord is null)
-            return ItemQueryResult<TOut>.Failure($"No record retrieved with a Uid of {request.KeyValue.ToString()}");
+            return ItemQueryResult<TOutRecord>.Failure($"No record retrieved with a Uid of {request.KeyValue.ToString()}");
 
         var outRecord = mapper.MapTo(inRecord);
 
         if (outRecord is null)
-            return ItemQueryResult<TOut>.Failure($"Unable to map record retrieved with a Uid of {request.KeyValue.ToString()}");
+            return ItemQueryResult<TOutRecord>.Failure($"Unable to map record retrieved with a Uid of {request.KeyValue.ToString()}");
 
-        return ItemQueryResult<TOut>.Success(outRecord);
+        return ItemQueryResult<TOutRecord>.Success(outRecord);
     }
 }
