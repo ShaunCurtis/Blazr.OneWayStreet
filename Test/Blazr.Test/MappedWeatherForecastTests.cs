@@ -38,7 +38,7 @@ public class MappedWeatherForecastTests
     }
 
     [Fact]
-    public async void GetAForecast()
+    public async Task GetAForecast()
     {
         // Get a fully stocked DI container
         var provider = GetServiceProvider();
@@ -73,7 +73,7 @@ public class MappedWeatherForecastTests
     [InlineData(0, 10)]
     [InlineData(0, 50)]
     [InlineData(5, 10)]
-    public async void GetForecastList(int startIndex, int pageSize)
+    public async Task GetForecastList(int startIndex, int pageSize)
     {
         var provider = GetServiceProvider();
         var broker = provider.GetService<IDataBroker>()!;
@@ -91,7 +91,7 @@ public class MappedWeatherForecastTests
     }
 
     [Fact]
-    public async void GetAFilteredForecastList()
+    public async Task GetAFilteredForecastList()
     {
         var provider = GetServiceProvider();
         var broker = provider.GetService<IDataBroker>()!;
@@ -116,7 +116,7 @@ public class MappedWeatherForecastTests
     }
 
     [Fact]
-    public async void GetASortedForecastList()
+    public async Task GetASortedForecastList()
     {
         var provider = GetServiceProvider();
         var broker = provider.GetService<IDataBroker>()!;
@@ -144,7 +144,7 @@ public class MappedWeatherForecastTests
     }
 
     [Fact]
-    public async void UpdateAForecast()
+    public async Task UpdateAForecast()
     {
         // Get a fully stocked DI container
         var provider = GetServiceProvider();
@@ -185,7 +185,7 @@ public class MappedWeatherForecastTests
     }
 
     [Fact]
-    public async void DeleteAForecast()
+    public async Task DeleteAForecast()
     {
         // Get a fully stocked DI container
         var provider = GetServiceProvider();
@@ -210,7 +210,7 @@ public class MappedWeatherForecastTests
     }
 
     [Fact]
-    public async void AddAForecast()
+    public async Task AddAForecast()
     {
         // Get a fully stocked DI container
         var provider = GetServiceProvider();

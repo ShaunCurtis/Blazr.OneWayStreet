@@ -5,10 +5,11 @@
 /// ============================================================
 namespace Blazr.OneWayStreet.Infrastructure;
 
-public sealed class MappedCommandServerHandler<TDbContext, TDbo>
-    : ICommandHandler
+public sealed class MappedCommandServerHandler<TDbContext, TDomainRecord, TDatabaseRecord>
+    : ICommandHandler<TDomainRecord>
     where TDbContext : DbContext
-    where TDbo : class
+    where TDatabaseRecord : class
+    where TDomainRecord : class
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly IDbContextFactory<TDbContext> _factory;
@@ -19,32 +20,23 @@ public sealed class MappedCommandServerHandler<TDbContext, TDbo>
         _factory = factory;
     }
 
-    public async ValueTask<CommandResult> ExecuteAsync<TDco>(CommandRequest<TDco> request)
-        where TDco : class
+    public async ValueTask<CommandResult> ExecuteAsync(CommandRequest<TDomainRecord> request)
     {
-        // Try and get a registered custom handler
-        var _customHandler = _serviceProvider.GetService<ICommandHandler<TDco>>();
-
-        // If one exists execute it
-        if (_customHandler is not null)
-            return await _customHandler.ExecuteAsync(request);
-
-        // If not run the base handler
-        return await this.ExecuteCommandAsync<TDco>(request);
+        return await this.ExecuteCommandAsync(request);
     }
 
-    private async ValueTask<CommandResult> ExecuteCommandAsync<TDco>(CommandRequest<TDco> request)
-    where TDco : class
+    private async ValueTask<CommandResult> ExecuteCommandAsync(CommandRequest<TDomainRecord> request)
     {
-        // Check if command operations are allowed on the TDco object
+        // Check if command operations are allowed on the TDomainRecord object
         if ((request.Item is not ICommandEntity))
             return CommandResult.Failure($"{request.Item.GetType().Name} Does not implement ICommandEntity and therefore you can't Update/Add/Delete it directly.");
 
-        // Check we have a mapper for converting the TDco domain object to TDco DbContext object
-        IDboEntityMap<TDbo, TDco>? mapper = null;
-        mapper = _serviceProvider.GetService<IDboEntityMap<TDbo, TDco>>();
+        // Check we have a mapper for converting the TDomainRecord domain object to TDomainRecord DbContext object
+        IDboEntityMap<TDatabaseRecord, TDomainRecord>? mapper = null;
+        mapper = _serviceProvider.GetService<IDboEntityMap<TDatabaseRecord, TDomainRecord>>();
+
         if (mapper is null)
-            return CommandResult.Failure($"No mapper is defined for {this.GetType().FullName} for {(typeof(TDbo).FullName)}");
+            return CommandResult.Failure($"No mapper defined for {this.GetType().FullName} for {(typeof(TDatabaseRecord).FullName)}");
 
         var dboRecord = mapper.MapTo(request.Item);
 
@@ -62,7 +54,7 @@ public sealed class MappedCommandServerHandler<TDbContext, TDbo>
             failure = "Error Adding Record";
             isAdd = true;
 
-            dbContext.Add<TDbo>(dboRecord);
+            dbContext.Add<TDatabaseRecord>(dboRecord);
             recordsAffected = await dbContext.SaveChangesAsync(request.Cancellation);
         }
 
@@ -72,8 +64,10 @@ public sealed class MappedCommandServerHandler<TDbContext, TDbo>
             success = "Record Deleted";
             failure = "Error Deleting Record";
 
-            dbContext.Remove<TDbo>(dboRecord);
-            recordsAffected = await dbContext.SaveChangesAsync(request.Cancellation);
+            dbContext.Remove<TDatabaseRecord>(dboRecord);
+            recordsAffected = await dbContext
+                .SaveChangesAsync(request.Cancellation)
+                .ConfigureAwait(ConfigureAwaitOptions.None);
         }
 
         // Finally check if it's a update
@@ -82,8 +76,10 @@ public sealed class MappedCommandServerHandler<TDbContext, TDbo>
             success = "Record Updated";
             failure = "Error Updating Record";
 
-            dbContext.Update<TDbo>(dboRecord);
-            recordsAffected = await dbContext.SaveChangesAsync(request.Cancellation);
+            dbContext.Update<TDatabaseRecord>(dboRecord);
+            recordsAffected = await dbContext
+                .SaveChangesAsync(request.Cancellation)
+                .ConfigureAwait(ConfigureAwaitOptions.None);
         }
 
         // We will have either 1 or 0 changed records

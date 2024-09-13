@@ -6,7 +6,6 @@
 
 using Blazr.App.Core;
 using Blazr.App.Infrastructure;
-using Blazr.Core.OWS;
 using Blazr.OneWayStreet.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -38,7 +37,7 @@ public class WeatherForecastTests
     }
 
     [Fact]
-    public async void GetAForecast()
+    public async Task GetAForecast()
     {
         // Get a fully stocked DI container
         var provider = GetServiceProvider();
@@ -51,12 +50,12 @@ public class WeatherForecastTests
         var testUid = testItem.WeatherForecastUid;
 
         // Builds an item request instance and Executes the query against the broker
-        var request = ItemQueryRequest.Create(testUid);
+        var request = ItemQueryRequest<Guid>.Create(testUid);
         var loadResult = await broker.ExecuteQueryAsync<WeatherForecast>(request);
 
         // check the query was successful
         Assert.True(loadResult.Successful);
-        
+
         // get the returned record 
         var dbItem = loadResult.Item;
 
@@ -68,7 +67,7 @@ public class WeatherForecastTests
     [InlineData(0, 10)]
     [InlineData(0, 50)]
     [InlineData(5, 10)]
-    public async void GetForecastList(int startIndex, int pageSize)
+    public async Task GetForecastList(int startIndex, int pageSize)
     {
         var provider = GetServiceProvider();
         var broker = provider.GetService<IDataBroker>()!;
@@ -89,7 +88,7 @@ public class WeatherForecastTests
     }
 
     [Fact]
-    public async void GetAFilteredForecastList()
+    public async Task GetAFilteredForecastList()
     {
         var provider = GetServiceProvider();
         var broker = provider.GetService<IDataBroker>()!;
@@ -117,7 +116,7 @@ public class WeatherForecastTests
     }
 
     [Fact]
-    public async void GetASortedForecastList()
+    public async Task GetASortedForecastList()
     {
         var provider = GetServiceProvider();
         var broker = provider.GetService<IDataBroker>()!;
@@ -126,7 +125,7 @@ public class WeatherForecastTests
         var testFirstItem = _testDataProvider.WeatherForecasts.Last();
 
         SortDefinition sort = new("Date", true);
-        var sortList = new List<SortDefinition>() { sort }; 
+        var sortList = new List<SortDefinition>() { sort };
 
         var request = new ListQueryRequest { PageSize = 10000, StartIndex = 0, Sorters = sortList };
         var loadResult = await broker.ExecuteQueryAsync<WeatherForecast>(request);
@@ -145,7 +144,7 @@ public class WeatherForecastTests
     }
 
     [Fact]
-    public async void UpdateAForecast()
+    public async Task UpdateAForecast()
     {
         // Get a fully stocked DI container
         var provider = GetServiceProvider();
@@ -195,7 +194,7 @@ public class WeatherForecastTests
     }
 
     [Fact]
-    public async void DeleteAForecast()
+    public async Task DeleteAForecast()
     {
         // Get a fully stocked DI container
         var provider = GetServiceProvider();
@@ -224,7 +223,7 @@ public class WeatherForecastTests
     }
 
     [Fact]
-    public async void AddAForecast()
+    public async Task AddAForecast()
     {
         // Get a fully stocked DI container
         var provider = GetServiceProvider();
