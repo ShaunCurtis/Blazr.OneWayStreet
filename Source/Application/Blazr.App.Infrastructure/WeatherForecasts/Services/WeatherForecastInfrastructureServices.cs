@@ -17,7 +17,7 @@ public static class WeatherForecastInfrastructureServices
     {
         services.AddScoped<IDboEntityMap<DboWeatherForecast, DcoWeatherForecast>, WeatherForecastMap>();
         services.AddScoped<IListRequestHandler<DcoWeatherForecast>, MappedListRequestServerHandler<InMemoryTestDbContext, DcoWeatherForecast, DboWeatherForecast>>();
-        services.AddScoped<IItemRequestHandler<DcoWeatherForecast>, MappedItemRequestServerHandler<InMemoryTestDbContext, DcoWeatherForecast, DboWeatherForecast>>();
+        services.AddScoped<IItemRequestHandler<DcoWeatherForecast, WeatherForecastId>, MappedItemRequestServerHandler<InMemoryTestDbContext, DcoWeatherForecast, DboWeatherForecast, WeatherForecastId>>();
         services.AddScoped<ICommandHandler<DcoWeatherForecast>, MappedCommandServerHandler<InMemoryTestDbContext, DcoWeatherForecast, DboWeatherForecast>>();
 
         //services.AddTransient<IRecordFilterHandler<DcoWeatherForecast>, DcoWeatherForecastFilterHandler>();

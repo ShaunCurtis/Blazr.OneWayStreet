@@ -16,7 +16,7 @@ public class WeatherForecastMap : IDboEntityMap<DboWeatherForecast, DcoWeatherFo
     public static DcoWeatherForecast Map(DboWeatherForecast item)
         => new()
         {
-            WeatherForecastUid = new(item.Uid),
+            WeatherForecastId = new(item.Uid),
             Summary = item.Summary,
             Temperature =new( item.TemperatureC),
             Date = item.Date,
@@ -25,7 +25,7 @@ public class WeatherForecastMap : IDboEntityMap<DboWeatherForecast, DcoWeatherFo
     public static DboWeatherForecast Map(DcoWeatherForecast item)
         => new()
         {
-            Uid = item.WeatherForecastUid.Value,
+            Uid = item.WeatherForecastId.Value,
             Summary = item.Summary,
             TemperatureC = item.Temperature.TemperatureC,
             Date = item.Date,

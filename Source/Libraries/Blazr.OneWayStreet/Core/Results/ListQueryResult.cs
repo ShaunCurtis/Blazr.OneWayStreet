@@ -5,16 +5,16 @@
 /// ============================================================
 namespace Blazr.OneWayStreet.Core;
 
-public sealed record ListQueryResult<TRecord> : IDataResult
+public record class ListQueryResult<TRecord> : IDataResult
 {
     public IEnumerable<TRecord> Items { get; init;} = Enumerable.Empty<TRecord>();  
     public bool Successful { get; init; }
     public string? Message { get; init; }
-    public long TotalCount { get; init; }
+    public int TotalCount { get; init; }
 
-    private ListQueryResult() { }
+    public ListQueryResult() { }
 
-    public static ListQueryResult<TRecord> Success(IEnumerable<TRecord> Items, long totalCount, string? message = null)
+    public static ListQueryResult<TRecord> Success(IEnumerable<TRecord> Items, int totalCount, string? message = null)
         => new ListQueryResult<TRecord> {Successful=true,  Items= Items, TotalCount = totalCount, Message= message };
 
     public static ListQueryResult<TRecord> Failure(string message)

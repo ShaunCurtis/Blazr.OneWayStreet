@@ -10,7 +10,7 @@ public class DcoWeatherForecastEditContext
 {
     public string Name => "WeatherForecast Edit Context";
 
-    public WeatherForecastUid WeatherForecastUid { get; private set; }
+    public WeatherForecastId WeatherForecastId { get; private set; }
 
     public string? Summary { get; set; }
 
@@ -18,11 +18,11 @@ public class DcoWeatherForecastEditContext
 
     public DateOnly? Date { get; set; }
 
-    public Guid Uid => WeatherForecastUid.Value;
+    public Guid Uid => WeatherForecastId.Value;
 
     public DcoWeatherForecastEditContext(DcoWeatherForecast record)
     {
-        this.WeatherForecastUid = record.WeatherForecastUid;
+        this.WeatherForecastId = record.WeatherForecastId;
         this.Summary = record.Summary;
         this.TemperatureC = record.Temperature.TemperatureC;
         this.Date = record.Date;
@@ -30,7 +30,7 @@ public class DcoWeatherForecastEditContext
 
     public DcoWeatherForecast AsRecord => new()
     {
-        WeatherForecastUid = WeatherForecastUid,
+        WeatherForecastId = WeatherForecastId,
         Summary = Summary ?? "Not Set",
         Date = this.Date ?? DateOnly.FromDateTime(DateTime.Now),
         Temperature = new(this.TemperatureC ?? 0)
