@@ -51,7 +51,7 @@ public class WeatherForecastTests
 
         // Builds an item request instance and Executes the query against the broker
         var request = ItemQueryRequest<Guid>.Create(testUid);
-        var loadResult = await broker.ExecuteQueryAsync<WeatherForecast>(request);
+        var loadResult = await broker.ExecuteQueryAsync<WeatherForecast, Guid>(request);
 
         // check the query was successful
         Assert.True(loadResult.Successful);
@@ -70,7 +70,7 @@ public class WeatherForecastTests
     public async Task GetForecastList(int startIndex, int pageSize)
     {
         var provider = GetServiceProvider();
-        var broker = provider.GetService<IDataBroker>()!;
+        var broker = provider.GetRequiredService<IDataBroker>()!;
 
         // Get the total expected count and the first record of the page
         var testCount = _testDataProvider.WeatherForecasts.Count();
@@ -155,8 +155,8 @@ public class WeatherForecastTests
         var testUid = testItem.WeatherForecastUid;
 
         // Build an item query and execute it against the broker to get the record to edit
-        var request = ItemQueryRequest.Create(testUid);
-        var loadResult = await broker.ExecuteQueryAsync<WeatherForecast>(request);
+        var request = ItemQueryRequest<Guid>.Create(testUid);
+        var loadResult = await broker.ExecuteQueryAsync<WeatherForecast, Guid>(request);
         Assert.True(loadResult.Successful);
         var dbItem = loadResult.Item!;
 
@@ -177,8 +177,8 @@ public class WeatherForecastTests
         Assert.True(commandResult.Successful);
 
         // Get the updated record from the broker and test they are the same
-        request = ItemQueryRequest.Create(testUid);
-        loadResult = await broker.ExecuteQueryAsync<WeatherForecast>(request);
+        request = ItemQueryRequest<Guid>.Create(testUid);
+        loadResult = await broker.ExecuteQueryAsync<WeatherForecast, Guid>(request);
         Assert.True(loadResult.Successful);
         var dbNewItem = loadResult.Item!;
         Assert.Equal(newItem, dbNewItem);
@@ -211,8 +211,8 @@ public class WeatherForecastTests
         Assert.True(commandResult.Successful);
 
         // build a item request and ensure the record no longwer exists
-        var request = ItemQueryRequest.Create(testUid);
-        var loadResult = await broker.ExecuteQueryAsync<WeatherForecast>(request);
+        var request = ItemQueryRequest<Guid>.Create(testUid);
+        var loadResult = await broker.ExecuteQueryAsync<WeatherForecast, Guid>(request);
         Assert.False(loadResult.Successful);
 
         // build a list query and check we have one less rcord 
@@ -240,8 +240,8 @@ public class WeatherForecastTests
         Assert.True(commandResult.Successful);
 
         // Create a item query, execute it against the broker and check the new record exists
-        var request = ItemQueryRequest.Create(newItem.WeatherForecastUid);
-        var loadResult = await broker.ExecuteQueryAsync<WeatherForecast>(request);
+        var request = ItemQueryRequest<Guid>.Create(newItem.WeatherForecastUid);
+        var loadResult = await broker.ExecuteQueryAsync<WeatherForecast, Guid>(request);
         Assert.True(loadResult.Successful);
 
         var dbNewItem = loadResult.Item!;

@@ -24,3 +24,6 @@ Changes:
 2. Switch to `FindAsync` to find items in `ItemRequestServerHandler`.
 3. Added separate DcoWeatherForecast as domain object for mapped pipeline.
  
+## 2.PreReease
+
+Significant breaking changes.
