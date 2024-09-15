@@ -24,7 +24,6 @@ public sealed class ServerDataBroker : IDataBroker
 
     public ValueTask<ItemQueryResult<TRecord>> ExecuteQueryAsync<TRecord, TKey>(ItemQueryRequest<TKey> request)
         where TRecord : class
-        where TKey : IEntityKey
         => _itemRequestHandler.ExecuteAsync<TRecord, TKey>(request);
 
     public ValueTask<ListQueryResult<TRecord>> ExecuteQueryAsync<TRecord>(ListQueryRequest request) 

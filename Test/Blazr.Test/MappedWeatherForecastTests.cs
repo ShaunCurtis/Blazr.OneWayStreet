@@ -6,7 +6,6 @@
 
 using Blazr.App.Core;
 using Blazr.App.Infrastructure;
-using Blazr.Core.OWS;
 using Blazr.OneWayStreet.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -53,16 +52,17 @@ public class MappedWeatherForecastTests
 
         // Get the Domain object - the Test data provider deals in dbo objects
         var testItem = WeatherForecastMap.Map(testDboItem);
+        var testWeatherForecastId = testItem.WeatherForecastId;
 
         // Build an item request instance
-        var request = ItemQueryRequest.Create(testUid);
+        var request = ItemQueryRequest<WeatherForecastId>.Create(testWeatherForecastId);
 
         // Execute the query against the broker
-        var loadResult = await broker.ExecuteQueryAsync<DcoWeatherForecast>(request);
-        
+        var loadResult = await broker.ExecuteQueryAsync<DcoWeatherForecast, WeatherForecastId>(request);
+
         // check the query was successful
         Assert.True(loadResult.Successful);
-        
+
         // get the returned record 
         var dbItem = loadResult.Item;
         // check it matches the test record
@@ -125,7 +125,7 @@ public class MappedWeatherForecastTests
         var testFirstItem = WeatherForecastMap.Map(_testDataProvider.DboWeatherForecasts.Last());
 
         SortDefinition sort = new("Date", true);
-        var sortList = new List<SortDefinition>() { sort }; 
+        var sortList = new List<SortDefinition>() { sort };
 
         var request = new ListQueryRequest { PageSize = 10000, StartIndex = 0, Sorters = sortList };
         var loadResult = await broker.ExecuteQueryAsync<DcoWeatherForecast>(request);
@@ -152,11 +152,11 @@ public class MappedWeatherForecastTests
 
         var testDboItem = _testDataProvider.DboWeatherForecasts.First();
         var testUid = testDboItem.Uid;
-
         var testItem = WeatherForecastMap.Map(testDboItem);
+        var testWeatherForecastId = testItem.WeatherForecastId;
 
-        var request = ItemQueryRequest.Create(testUid);
-        var loadResult = await broker.ExecuteQueryAsync<DcoWeatherForecast>(request);
+        var request = ItemQueryRequest<WeatherForecastId>.Create(testWeatherForecastId);
+        var loadResult = await broker.ExecuteQueryAsync<DcoWeatherForecast, WeatherForecastId>(request);
         Assert.True(loadResult.Successful);
 
         var dbItem = loadResult.Item!;
@@ -167,8 +167,8 @@ public class MappedWeatherForecastTests
         var commandResult = await broker.ExecuteCommandAsync<DcoWeatherForecast>(command);
         Assert.True(commandResult.Successful);
 
-        request = ItemQueryRequest.Create(testUid);
-        loadResult = await broker.ExecuteQueryAsync<DcoWeatherForecast>(request);
+        request = ItemQueryRequest<WeatherForecastId>.Create(testWeatherForecastId);
+        loadResult = await broker.ExecuteQueryAsync<DcoWeatherForecast, WeatherForecastId>(request);
         Assert.True(loadResult.Successful);
 
         var dbNewItem = loadResult.Item!;
@@ -217,14 +217,14 @@ public class MappedWeatherForecastTests
         var broker = provider.GetService<IDataBroker>()!;
 
         var newItemGuid = Guid.NewGuid();
-        var newItem = new DcoWeatherForecast { WeatherForecastUid = new(newItemGuid), Date = DateOnly.FromDateTime(DateTime.Now), Summary = "Testing", Temperature = new(30) };
+        var newItem = new DcoWeatherForecast { WeatherForecastId = new(newItemGuid), Date = DateOnly.FromDateTime(DateTime.Now), Summary = "Testing", Temperature = new(30) };
 
         var command = new CommandRequest<DcoWeatherForecast>(newItem, CommandState.Add);
         var commandResult = await broker.ExecuteCommandAsync<DcoWeatherForecast>(command);
         Assert.True(commandResult.Successful);
 
-        var request = ItemQueryRequest.Create(newItem.WeatherForecastUid.Value);
-        var loadResult = await broker.ExecuteQueryAsync<DcoWeatherForecast>(request);
+        var request = ItemQueryRequest<WeatherForecastId>.Create(newItem.WeatherForecastId);
+        var loadResult = await broker.ExecuteQueryAsync<DcoWeatherForecast, WeatherForecastId>(request);
         Assert.True(loadResult.Successful);
 
         var dbNewItem = loadResult.Item!;
