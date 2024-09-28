@@ -3,17 +3,15 @@
 /// License: Use And Donate
 /// If you use it, donate something to a charity somewhere
 /// ============================================================
-using System.Net.Http.Json;
-
 namespace Blazr.OneWayStreet.Infrastructure;
 
-public sealed class CommandAPIHandler
-    : ICommandHandler
+public sealed class ItemRequestAPIHandler
+    : IItemRequestHandler
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly IHttpClientFactory _httpClientFactory;
 
-    public CommandAPIHandler(IServiceProvider serviceProvider, IHttpClientFactory httpClientFactory)
+    public ItemRequestAPIHandler(IServiceProvider serviceProvider, IHttpClientFactory httpClientFactory)
     {
         _serviceProvider = serviceProvider;
         _httpClientFactory = httpClientFactory;
@@ -22,25 +20,28 @@ public sealed class CommandAPIHandler
     /// <summary>
     /// Uses a specific handler if one is configured in DI
     /// If not, uses a generic handler using the APIInfo attributes to configure the HttpClient request  
+    /// Converts the supplied KeyValue to a string and passes it as the value
+    /// Note: The API endpoint needs to know how to handle it
     /// </summary>
     /// <typeparam name="TRecord"></typeparam>
+    /// <typeparam name="TKey"></typeparam>
     /// <param name="request"></param>
     /// <returns></returns>
-    public async ValueTask<CommandResult> ExecuteAsync<TRecord>(CommandRequest<TRecord> request)
+    public async ValueTask<ItemQueryResult<TRecord>> ExecuteAsync<TRecord, TKey>(ItemQueryRequest<TKey> request)
         where TRecord : class
     {
-        ICommandHandler<TRecord>? _customHandler = null;
+        IItemRequestHandler<TRecord, TKey>? _customHandler = null;
 
-        _customHandler = _serviceProvider.GetService<ICommandHandler<TRecord>>();
+        _customHandler = _serviceProvider.GetService<IItemRequestHandler<TRecord, TKey>>();
 
         // Get the custom handler
         if (_customHandler is not null)
             return await _customHandler.ExecuteAsync(request);
 
-        return await CommandAsync<TRecord>(request);
+        return await this.GetAsync<TRecord, TKey>(request);
     }
 
-    public async ValueTask<CommandResult> CommandAsync<TRecord>(CommandRequest<TRecord> request)
+    private async ValueTask<ItemQueryResult<TRecord>> GetAsync<TRecord, TKey>(ItemQueryRequest<TKey> request)
         where TRecord : class
     {
         var attribute = Attribute.GetCustomAttribute(typeof(TRecord), typeof(APIInfo));
@@ -50,22 +51,17 @@ public sealed class CommandAPIHandler
 
         using var http = _httpClientFactory.CreateClient(apiInfo.ClientName);
 
-        var apiRequest = CommandAPIRequest<TRecord>.FromRequest(request);
+        var apiRequest = ItemQueryAPIRequest<TKey>.FromRequest(request);
 
-        var httpResult = await http.PostAsJsonAsync<CommandAPIRequest<TRecord>>($"/API/{apiInfo.PathName}/Command", apiRequest, request.Cancellation)
-            .ConfigureAwait(ConfigureAwaitOptions.None); ;
-
-        if (!httpResult.IsSuccessStatusCode)
-            return CommandResult.Failure($"The server returned a status code of : {httpResult.StatusCode}");
-
-        var commandAPIResult = await httpResult.Content.ReadFromJsonAsync<CommandAPIResult<Guid>>()
+        var httpResult = await http.PostAsJsonAsync<ItemQueryAPIRequest<TKey>>($"/API/{apiInfo.PathName}/GetItem", apiRequest, request.Cancellation)
             .ConfigureAwait(ConfigureAwaitOptions.None); 
 
-        CommandResult? commandResult = null;
+        if (!httpResult.IsSuccessStatusCode)
+            return ItemQueryResult<TRecord>.Failure($"The server returned a status code of : {httpResult.StatusCode}");
 
-        if (commandAPIResult is not null)
-            commandResult = commandAPIResult.ToCommandResult();
+        var listResult = await httpResult.Content.ReadFromJsonAsync<ItemQueryResult<TRecord>>()
+            .ConfigureAwait(ConfigureAwaitOptions.None);
 
-        return commandResult ?? CommandResult.Failure($"No data was returned");
+        return listResult ?? ItemQueryResult<TRecord>.Failure($"No data was returned");
     }
 }

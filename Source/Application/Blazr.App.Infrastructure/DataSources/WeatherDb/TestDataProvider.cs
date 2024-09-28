@@ -1,6 +1,4 @@
-﻿using System.Reflection.Metadata.Ecma335;
-
-/// ============================================================
+﻿/// ============================================================
 /// Author: Shaun Curtis, Cold Elm Coders
 /// License: Use And Donate
 /// If you use it, donate something to a charity somewhere
@@ -22,7 +20,7 @@ public sealed class TestDataProvider
             return items ?? Enumerable.Empty<WeatherForecast>();
         }
     }
-       
+
 
     private List<DboWeatherForecast>? _dboWeatherForecasts;
 
@@ -64,7 +62,7 @@ public sealed class TestDataProvider
         var rng = new Random();
         _dboWeatherForecasts = Enumerable.Range(1, _recordsToGet).Select(index => new DboWeatherForecast
         {
-            Uid = Guid.NewGuid(),
+            Uid = Uuid7.Guid(),
             Date = DateOnly.FromDateTime(DateTime.Now).AddDays(index),
             TemperatureC = rng.Next(-20, 55),
             Summary = Summaries[rng.Next(Summaries.Length)]

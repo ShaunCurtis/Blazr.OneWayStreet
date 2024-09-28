@@ -26,4 +26,4 @@ Changes:
  
 ## 2.PreReease
 
-Significant breaking changes.
+Major rebuild of framework.  Significant breaking changes.

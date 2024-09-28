@@ -1,17 +1,11 @@
-/// ============================================================
-/// Author: Shaun Curtis, Cold Elm Coders
-/// License: Use And Donate
-/// If you use it, donate something to a charity somewhere
-/// ============================================================
-
-using Blazr.App.Core;
 using Blazr.App.Infrastructure;
+using Blazr.App.Core;
 using Blazr.OneWayStreet.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace Blazr.Test;
+namespace Blazr.OneWayStreet.Test;
 
 public class WeatherForecastTests
 {
@@ -20,13 +14,15 @@ public class WeatherForecastTests
     public WeatherForecastTests()
         => _testDataProvider = TestDataProvider.Instance();
 
-    private ServiceProvider GetServiceProvider()
+    private IServiceProvider GetServiceProvider()
     {
         var services = new ServiceCollection();
         services.AddAppServerInfrastructureServices();
         services.AddLogging(builder => builder.AddDebug());
 
-        var provider = services.BuildServiceProvider();
+        // Create the Root and then a Scoped Provider
+        var rootProvider = services.BuildServiceProvider();
+        var provider = rootProvider.CreateAsyncScope().ServiceProvider;
 
         // get the DbContext factory and add the test data
         var factory = provider.GetService<IDbContextFactory<InMemoryTestDbContext>>();
@@ -36,10 +32,11 @@ public class WeatherForecastTests
         return provider!;
     }
 
+
     [Fact]
     public async Task GetAForecast()
     {
-        // Get a fully stocked DI container
+        // Get a fully stocked scoped DI container
         var provider = GetServiceProvider();
 
         //Injects the data broker
@@ -62,6 +59,7 @@ public class WeatherForecastTests
         // check it matches the test record
         Assert.Equal(testItem, dbItem);
     }
+
 
     [Theory]
     [InlineData(0, 10)]
