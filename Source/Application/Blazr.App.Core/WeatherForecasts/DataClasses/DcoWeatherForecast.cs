@@ -8,14 +8,12 @@ namespace Blazr.App.Core;
 public readonly record struct WeatherForecastId : IRecordId
 {
     public Guid Value { get; init; }
-    public object GetKeyObject() 
-        => this.Value;
 
-    public WeatherForecastId(Guid value)
-        => this.Value = value;
+    public WeatherForecastId(Guid value) => this.Value = value;
 
-    public static WeatherForecastId NewEntity
-        => new(Guid.Empty);
+    public static WeatherForecastId NewEntity => new(Guid.Empty);
+
+    public object GetKeyObject() => this.Value;
 }
 
 public sealed record DcoWeatherForecast : ICommandEntity
