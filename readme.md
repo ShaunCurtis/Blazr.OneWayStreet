@@ -4,11 +4,13 @@
 
 It's available as a Nuget Package - [Blazr.OneWayStreet](https://www.nuget.org/packages/Blazr.OneWayStreet).
 
+> Note Version 2 is a rewrite of the library: there are too many breaking changes to document.  Version 1.x were pre-reelase versions.
+
 It separates out:
 
 - *Queries* - Requests for data
 - *Commands* - Requests to mutation data.
-
+ 
 The pattern is defined in the `IDataBroker` interface.
 
 ```csharp
