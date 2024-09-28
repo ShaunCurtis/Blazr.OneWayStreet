@@ -7,11 +7,11 @@
   </PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="Blazr.OneWayStreet" Version="2.0.0" />
 		<PackageReference Include="FluentValidation.AspNetCore" Version="11.3.0" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\..\Libraries\Blazr.OneWayStreet\Blazr.OneWayStreet.csproj" />
 	</ItemGroup>
 
 </Project>
