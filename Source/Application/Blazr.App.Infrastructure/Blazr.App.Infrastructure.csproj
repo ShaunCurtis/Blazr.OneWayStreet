@@ -1,10 +1,16 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="WeatherForecasts\Handlers\**" />
+    <EmbeddedResource Remove="WeatherForecasts\Handlers\**" />
+    <None Remove="WeatherForecasts\Handlers\**" />
+  </ItemGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.8" />
@@ -14,15 +20,13 @@
 		</PackageReference>
 		<PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.8" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.8" />
+		<PackageReference Include="UuidExtensions" Version="1.2.0" />
 	</ItemGroup>
 
 	<ItemGroup>
+	  <ProjectReference Include="..\..\Libraries\Blazr.OneWayStreet.EntityFramework\Blazr.OneWayStreet.EntityFramework.csproj" />
 	  <ProjectReference Include="..\..\Libraries\Blazr.OneWayStreet\Blazr.OneWayStreet.csproj" />
 	  <ProjectReference Include="..\Blazr.App.Core\Blazr.App.Core.csproj" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="WeatherForecasts\Handlers\" />
 	</ItemGroup>
 
 </Project>

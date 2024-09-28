@@ -1,6 +1,6 @@
 # One Way Street
 
-One Way Street is a read only data pipeline loosely based on CQS [Command/Query Separation] pattern.  This article provides an introduction and demonstrates it's usage using XUnit tests.
+*OneWayStreet* is data pipeline loosely based on the CQS [Command/Query Separation] pattern.  This article provides an introduction and demonstrates it's usage using XUnit tests.
 
 It's available as a Nuget Package - [Blazr.OneWayStreet](https://www.nuget.org/packages/Blazr.OneWayStreet).
 
@@ -25,11 +25,11 @@ public interface IDataBroker
 }
 ```
 
-Each method accepts a *Request* object that provides the data required, and returns a *Result* object.
+Each method accepts a *Request* object providing the data required to execute the request, and returns a *Result* object.
 
-`ExecuteQueryAsync` has two forms.  One returning a single `TRecord` item, and one a collection of `TRecord`'s.
+`ExecuteQueryAsync` has two forms.  Pass an `ItemQueryRequest` and get a a single `TRecord` item, or a `ListQueryRequest` and get `TRecord` collection.
 
-`ExecuteCommandAsync` has a single form.  The command type [Add/Update/Delete] is defined in the `CommandRequest`.  
+`ExecuteCommandAsync` executes an *Add/Update/Delete* action defined in the `CommandRequest`.  
 
 ```csharp
 public record struct CommandRequest<TRecord>(TRecord Item, CommandState State, CancellationToken Cancellation = new());
@@ -43,23 +43,24 @@ public enum CommandState
 }
 ```
 
-The library provides a server based implementation of the pattern over Entity Framework Core.  
+The library provides two implementations:
+ - A server based implementation of the pattern over Entity Framework Core.
+ - An API implementation.  
 
 ### Service Definitions
 
 Each test builds a Service Collection [as you would in a normal application].  `IServiceCollection` extension methods are used to encapsulate service provision for the framework and specific entities. 
 
 ```csharp
-    public WeatherForecastTests()
-        => _testDataProvider = TestDataProvider.Instance();
-
-    private ServiceProvider GetServiceProvider()
+    private IServiceProvider GetServiceProvider()
     {
         var services = new ServiceCollection();
         services.AddAppServerInfrastructureServices();
         services.AddLogging(builder => builder.AddDebug());
 
-        var provider = services.BuildServiceProvider();
+        // Create the Root and then a Scoped Provider
+        var rootProvider = services.BuildServiceProvider();
+        var provider = rootProvider.CreateAsyncScope().ServiceProvider;
 
         // get the DbContext factory and add the test data
         var factory = provider.GetService<IDbContextFactory<InMemoryTestDbContext>>();
@@ -74,25 +75,27 @@ Each test builds a Service Collection [as you would in a normal application].  `
 
 1. Adds the DBContext Factory.
 2. Adds the Server Data Broker.
+1. Add the IdConverter.
 3. Adds the generic data handlers.
 4. Calls the entity/feature specific extension methods. 
 
 ```csharp
-public static void AddAppServerInfrastructureServices(this IServiceCollection services)
-{
-    services.AddDbContextFactory<InMemoryTestDbContext>(options
-        => options.UseInMemoryDatabase($"TestDatabase-{Guid.NewGuid().ToString()}"));
+    public static void AddAppServerInfrastructureServices(this IServiceCollection services)
+    {
+        services.AddDbContextFactory<InMemoryTestDbContext>(options
+            => options.UseInMemoryDatabase($"TestDatabase-{Guid.NewGuid().ToString()}"));
 
-    services.AddScoped<IDataBroker, ServerDataBroker>();
+        services.AddScoped<IDataBroker, DataBroker>();
+        services.AddScoped<IIdConverter, IdConverter>();
 
-    // Add the standard handlers
-    services.AddScoped<IListRequestHandler, ListRequestServerHandler<InMemoryTestDbContext>>();
-    services.AddScoped<IItemRequestHandler, ItemRequestServerHandler<InMemoryTestDbContext>>();
-    services.AddScoped<ICommandHandler, CommandServerHandler<InMemoryTestDbContext>>();
+        // Add the standard handlers
+        services.AddScoped<IListRequestHandler, ListRequestServerHandler<InMemoryTestDbContext>>();
+        services.AddScoped<IItemRequestHandler, ItemRequestServerHandler<InMemoryTestDbContext>>();
+        services.AddScoped<ICommandHandler, CommandServerHandler<InMemoryTestDbContext>>();
 
-    // Add any individual entity services
-    services.AddWeatherForecastServerInfrastructureServices();
-}
+        // Add any individual entity services
+        services.AddWeatherForecastServerInfrastructureServices();
+    }
 ```
 
 `AddWeatherForecastServerInfrastructureServices` adds the entity specific services.  In this case, just the filter and sorter handlers.
@@ -104,6 +107,8 @@ public static void AddWeatherForecastServerInfrastructureServices(this IServiceC
     services.AddTransient<IRecordSortHandler<WeatherForecast>, WeatherForecastSortHandler>();
 }
 ```
+
+## Basic Setup Tests
 
 ### GetAForecast Test
 
@@ -241,7 +246,7 @@ public async void DeleteAForecast()
 }
 ```
 
-## Editing a Record
+### Editing a Record
 
 "How do you edit a Record"?
 
@@ -297,4 +302,106 @@ public async void UpdateAForecast()
     var testCount = _testDataProvider.WeatherForecasts.Count();
     Assert.Equal(testCount, queryResult.TotalCount);
 }
+```
+
+## Mapped Record Tests
+
+In a normal application, the database table objects are mapped to domain objects.
+
+The Service Provider setup is the same.
+
+```csharp
+    private IServiceProvider GetServiceProvider()
+    {
+        var services = new ServiceCollection();
+        services.AddAppServerMappedInfrastructureServices();
+        services.AddLogging(builder => builder.AddDebug());
+
+        // Create the Root and then a Scoped Provider
+        var rootProvider = services.BuildServiceProvider();
+        var provider = rootProvider.CreateAsyncScope().ServiceProvider;
+
+        // get the DbContext factory and add the test data
+        var factory = provider.GetService<IDbContextFactory<InMemoryTestDbContext>>();
+        if (factory is not null)
+            TestDataProvider.Instance().LoadDbContext<InMemoryTestDbContext>(factory);
+
+        return provider!;
+    }
+```
+
+As are the default handlers
+
+```csharp
+    public static void AddAppServerMappedInfrastructureServices(this IServiceCollection services)
+    {
+        services.AddDbContextFactory<InMemoryTestDbContext>(options
+            => options.UseInMemoryDatabase($"TestDatabase-{Guid.NewGuid().ToString()}"));
+
+        services.AddScoped<IDataBroker, DataBroker>();
+        services.AddScoped<IIdConverter, IdConverter>();
+
+        // Add the standard handlers
+        services.AddScoped<IListRequestHandler, ListRequestServerHandler<InMemoryTestDbContext>>();
+        services.AddScoped<IItemRequestHandler, ItemRequestServerHandler<InMemoryTestDbContext>>();
+        services.AddScoped<ICommandHandler, CommandServerHandler<InMemoryTestDbContext>>();
+
+        // Add any individual entity services
+        services.AddMappedWeatherForecastServerInfrastructureServices();
+    }
+```
+
+The differences are in the specific WeatherForecast services.  We add:
+
+1. The mapper to map between the inbfrastructure DTO and the Domain DTO.
+1. Mapped Handlers with mapping DTO definitions.
+
+```csharp
+    public static void AddMappedWeatherForecastServerInfrastructureServices(this IServiceCollection services)
+    {
+        services.AddScoped<IDboEntityMap<DboWeatherForecast, DcoWeatherForecast>, WeatherForecastMap>();
+        services.AddScoped<IListRequestHandler<DcoWeatherForecast>, MappedListRequestServerHandler<InMemoryTestDbContext, DcoWeatherForecast, DboWeatherForecast>>();
+        services.AddScoped<IItemRequestHandler<DcoWeatherForecast, WeatherForecastId>, MappedItemRequestServerHandler<InMemoryTestDbContext, DcoWeatherForecast, DboWeatherForecast, WeatherForecastId>>();
+        services.AddScoped<ICommandHandler<DcoWeatherForecast>, MappedCommandServerHandler<InMemoryTestDbContext, DcoWeatherForecast, DboWeatherForecast>>();
+
+        services.AddTransient<IRecordFilterHandler<DboWeatherForecast>, DboWeatherForecastFilterHandler>();
+        services.AddTransient<IRecordSortHandler<DboWeatherForecast>, DboWeatherForecastSortHandler>();
+    }
+```
+
+The tests are basically the same with a bit of mapping to test for the correct entity.
+
+```csharp
+    [Fact]
+    public async Task GetAForecast()
+    {
+        // Get a fully stocked DI container
+        var provider = GetServiceProvider();
+
+        //Get the data broker
+        var broker = provider.GetService<IDataBroker>()!;
+
+        // Get the test item from the Test Provider
+        var testDboItem = _testDataProvider.DboWeatherForecasts.First();
+        // Gets the Id to retrieve
+        var testUid = testDboItem.Uid;
+
+        // Get the Domain object - the Test data provider deals in dbo objects
+        var testItem = WeatherForecastMap.Map(testDboItem);
+        var testWeatherForecastId = testItem.WeatherForecastId;
+
+        // Build an item request instance
+        var request = ItemQueryRequest<WeatherForecastId>.Create(testWeatherForecastId);
+
+        // Execute the query against the broker
+        var loadResult = await broker.ExecuteQueryAsync<DcoWeatherForecast, WeatherForecastId>(request);
+
+        // check the query was successful
+        Assert.True(loadResult.Successful);
+
+        // get the returned record 
+        var dbItem = loadResult.Item;
+        // check it matches the test record
+        Assert.Equal(testItem, dbItem);
+    }
 ```

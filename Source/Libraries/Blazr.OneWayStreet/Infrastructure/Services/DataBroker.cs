@@ -6,7 +6,7 @@
 
 namespace Blazr.OneWayStreet.Infrastructure;
 
-public sealed class DataBroker : IDataBroker
+public class DataBroker : IDataBroker
 {
     private readonly IListRequestHandler _listRequestHandler;
     private readonly IItemRequestHandler _itemRequestHandler;

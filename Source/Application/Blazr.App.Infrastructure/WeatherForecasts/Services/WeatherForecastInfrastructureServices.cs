@@ -20,9 +20,6 @@ public static class WeatherForecastInfrastructureServices
         services.AddScoped<IItemRequestHandler<DcoWeatherForecast, WeatherForecastId>, MappedItemRequestServerHandler<InMemoryTestDbContext, DcoWeatherForecast, DboWeatherForecast, WeatherForecastId>>();
         services.AddScoped<ICommandHandler<DcoWeatherForecast>, MappedCommandServerHandler<InMemoryTestDbContext, DcoWeatherForecast, DboWeatherForecast>>();
 
-        //services.AddTransient<IRecordFilterHandler<DcoWeatherForecast>, DcoWeatherForecastFilterHandler>();
-        //services.AddTransient<IRecordSortHandler<DcoWeatherForecast>, DcoWeatherForecastSortHandler>();
-
         services.AddTransient<IRecordFilterHandler<DboWeatherForecast>, DboWeatherForecastFilterHandler>();
         services.AddTransient<IRecordSortHandler<DboWeatherForecast>, DboWeatherForecastSortHandler>();
     }
