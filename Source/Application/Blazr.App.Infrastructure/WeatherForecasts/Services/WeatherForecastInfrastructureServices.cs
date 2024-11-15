@@ -15,6 +15,7 @@ public static class WeatherForecastInfrastructureServices
 
     public static void AddMappedWeatherForecastServerInfrastructureServices(this IServiceCollection services)
     {
+        services.AddScoped<IKeyProvider<WeatherForecastId>, WeatherForecastKeyProvider>();
         services.AddScoped<IDboEntityMap<DboWeatherForecast, DcoWeatherForecast>, WeatherForecastMap>();
         services.AddScoped<IListRequestHandler<DcoWeatherForecast>, MappedListRequestServerHandler<InMemoryTestDbContext, DcoWeatherForecast, DboWeatherForecast>>();
         services.AddScoped<IItemRequestHandler<DcoWeatherForecast, WeatherForecastId>, MappedItemRequestServerHandler<InMemoryTestDbContext, DcoWeatherForecast, DboWeatherForecast, WeatherForecastId>>();

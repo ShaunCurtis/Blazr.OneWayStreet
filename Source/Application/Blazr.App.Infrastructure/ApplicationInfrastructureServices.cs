@@ -13,12 +13,16 @@ public static class ApplicationInfrastructureServices
             => options.UseInMemoryDatabase($"TestDatabase-{Guid.NewGuid().ToString()}"));
 
         services.AddScoped<IDataBroker, DataBroker>();
-        services.AddScoped<IIdConverter, IdConverter>();
 
         // Add the standard handlers
         services.AddScoped<IListRequestHandler, ListRequestServerHandler<InMemoryTestDbContext>>();
         services.AddScoped<IItemRequestHandler, ItemRequestServerHandler<InMemoryTestDbContext>>();
         services.AddScoped<ICommandHandler, CommandServerHandler<InMemoryTestDbContext>>();
+
+        // Add default KeyProviders
+        services.AddScoped<IKeyProvider<Guid>, GuidKeyProvider>();
+        services.AddScoped<IKeyProvider<long>, LongKeyProvider>();
+        services.AddScoped<IKeyProvider<int>, IntKeyProvider>();
 
         // Add any individual entity services
         services.AddWeatherForecastServerInfrastructureServices();
@@ -30,12 +34,16 @@ public static class ApplicationInfrastructureServices
             => options.UseInMemoryDatabase($"TestDatabase-{Guid.NewGuid().ToString()}"));
 
         services.AddScoped<IDataBroker, DataBroker>();
-        services.AddScoped<IIdConverter, IdConverter>();
 
         // Add the standard handlers
         services.AddScoped<IListRequestHandler, ListRequestServerHandler<InMemoryTestDbContext>>();
         services.AddScoped<IItemRequestHandler, ItemRequestServerHandler<InMemoryTestDbContext>>();
         services.AddScoped<ICommandHandler, CommandServerHandler<InMemoryTestDbContext>>();
+
+        // Add default KeyProviders
+        services.AddScoped<IKeyProvider<Guid>, GuidKeyProvider>();
+        services.AddScoped<IKeyProvider<long>, LongKeyProvider>();
+        services.AddScoped<IKeyProvider<int>, IntKeyProvider>();
 
         // Add any individual entity services
         services.AddMappedWeatherForecastServerInfrastructureServices();

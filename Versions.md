@@ -37,3 +37,7 @@ Changes:
 ## 2.0.0
 
 Major rebuild of framework.  Significant breaking changes.
+
+## 2.0.1
+
+Implemented IKeyProvider to manage key functionality generically through registered DI providers.

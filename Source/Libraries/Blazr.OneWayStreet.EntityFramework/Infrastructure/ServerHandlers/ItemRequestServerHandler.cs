@@ -3,6 +3,8 @@
 /// License: Use And Donate
 /// If you use it, donate something to a charity somewhere
 /// ============================================================
+using Microsoft.Extensions.Logging;
+
 namespace Blazr.OneWayStreet.Infrastructure;
 
 public sealed class ItemRequestServerHandler<TDbContext>
@@ -11,13 +13,13 @@ public sealed class ItemRequestServerHandler<TDbContext>
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly IDbContextFactory<TDbContext> _factory;
-    private readonly IIdConverter _idConverter;
+    private ILogger<ItemRequestServerHandler<TDbContext>> _logger;
 
-    public ItemRequestServerHandler(IServiceProvider serviceProvider, IDbContextFactory<TDbContext> factory, IIdConverter idConverter)
+    public ItemRequestServerHandler(IServiceProvider serviceProvider, IDbContextFactory<TDbContext> factory, ILogger<ItemRequestServerHandler<TDbContext>> logger)
     {
         _serviceProvider = serviceProvider;
         _factory = factory;
-        _idConverter = idConverter;
+        _logger = logger;
     }
 
     public async ValueTask<ItemQueryResult<TRecord>> ExecuteAsync<TRecord, TKey>(ItemQueryRequest<TKey> request)
@@ -37,17 +39,24 @@ public sealed class ItemRequestServerHandler<TDbContext>
     private async ValueTask<ItemQueryResult<TRecord>> GetItemAsync<TRecord, TKey>(ItemQueryRequest<TKey> request)
         where TRecord : class
     {
+        IKeyProvider<TKey>? keyprovider = _serviceProvider.GetService<IKeyProvider<TKey>>();
+
+        if (keyprovider is null)
+        {
+            var message = $"No IKeyProvider loaded in DI for {typeof(TKey).Name}";
+            _logger.LogWarning(message);
+        }
+
         using var dbContext = _factory.CreateDbContext();
         dbContext.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
-
 
         if (request.Key is null)
             return ItemQueryResult<TRecord>.Failure($"No Key provided");
 
-       object? key = null;
+        object key = request.Key;
 
-        if (!_idConverter.TryConvert(request.Key, out key))
-            return ItemQueryResult<TRecord>.Failure($"Could not convert provided value to an Id of {request.Key?.ToString()}");
+        if (keyprovider != null)
+            key = keyprovider.GetValueObject(request.Key);
 
         var record = await dbContext.Set<TRecord>()
             .FindAsync(key, request.Cancellation)

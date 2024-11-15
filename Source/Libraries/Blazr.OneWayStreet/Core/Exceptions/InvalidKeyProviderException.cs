@@ -3,9 +3,14 @@
 /// License: Use And Donate
 /// If you use it, donate something to a charity somewhere
 /// ============================================================
+
 namespace Blazr.OneWayStreet.Core;
 
-public interface IRecordId
+public class InvalidKeyProviderException : Exception
 {
-    public object GetKeyObject();
+    public InvalidKeyProviderException()
+        : base($"The provided key object is not the right type.") { }
+
+    public InvalidKeyProviderException(string message)
+        : base(message) { }
 }

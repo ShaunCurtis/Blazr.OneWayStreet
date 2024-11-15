@@ -22,13 +22,13 @@ public sealed class MappedItemRequestServerHandler<TDbContext, TDomainRecord, TD
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly IDbContextFactory<TDbContext> _factory;
-    private readonly IIdConverter _idConverter;
+    private readonly IKeyProvider<TKey> _keyProvider;
 
-    public MappedItemRequestServerHandler(IServiceProvider serviceProvider, IDbContextFactory<TDbContext> factory, IIdConverter idConverter)
+    public MappedItemRequestServerHandler(IServiceProvider serviceProvider, IDbContextFactory<TDbContext> factory, IKeyProvider<TKey> keyProvider)
     {
         _serviceProvider = serviceProvider;
         _factory = factory;
-        _idConverter = idConverter;
+        _keyProvider = keyProvider;
     }
 
     public async ValueTask<ItemQueryResult<TDomainRecord>> ExecuteAsync(ItemQueryRequest<TKey> request)
@@ -53,10 +53,7 @@ public sealed class MappedItemRequestServerHandler<TDbContext, TDomainRecord, TD
         if (request.Key is null)
             return ItemQueryResult<TDomainRecord>.Failure($"No request key was provided.");
 
-        object? idValue = null;
-
-        if (!_idConverter.TryConvert(request.Key, out idValue))
-            return ItemQueryResult<TDomainRecord>.Failure($"Could not convert provided value to an Id of {request.Key?.ToString()}");
+        object idValue = _keyProvider.GetValueObject(request.Key);
 
         var inRecord = await dbContext.Set<TDatabaseRecord>()
             .FindAsync(idValue, request.Cancellation)
