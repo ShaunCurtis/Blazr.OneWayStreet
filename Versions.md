@@ -41,3 +41,11 @@ Major rebuild of framework.  Significant breaking changes.
 ## 2.0.1
 
 Implemented IKeyProvider to manage key functionality generically through registered DI providers.
+
+## 2.0.2
+
+Removal of the `IIdConverter` service.
+
+## 2.0.3/2.0.4
+
+Updates to packages to latest version of Net8 and removal of any packages with advised vulnerabilities.
