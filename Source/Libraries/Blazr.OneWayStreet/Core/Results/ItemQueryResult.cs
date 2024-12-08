@@ -13,6 +13,9 @@ public sealed record ItemQueryResult<TRecord> : IDataResult
 
     public ItemQueryResult() { }
 
+    public TResult Map<TResult>(Func<TRecord,TResult> onSuccess, Func<string, TResult> onFailure)
+        =>  Successful ? onSuccess(this.Item!) : onFailure(this.Message!); 
+
     public static ItemQueryResult<TRecord> Success(TRecord Item, string? message = null)
         => new ItemQueryResult<TRecord> { Successful=true, Item= Item, Message= message};
 

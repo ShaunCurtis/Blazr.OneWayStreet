@@ -14,6 +14,9 @@ public record class ListQueryResult<TRecord> : IDataResult
 
     public ListQueryResult() { }
 
+    public TResult Map<TResult>(Func<IEnumerable<TRecord>, TResult> onSuccess, Func<string, TResult> onFailure)
+        => Successful ? onSuccess(this.Items!) : onFailure(this.Message!);
+
     public static ListQueryResult<TRecord> Success(IEnumerable<TRecord> Items, int totalCount, string? message = null)
         => new ListQueryResult<TRecord> {Successful=true,  Items= Items, TotalCount = totalCount, Message= message };
 
